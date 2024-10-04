@@ -1,3 +1,0 @@
-[11-Oct-2023 16:23:36 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/aowi4gyyecjj/public_html/app/Http/Controllers/Dashboard/Store_licensesController.php on line 3
-[11-Oct-2023 16:24:30 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/aowi4gyyecjj/public_html/app/Http/Controllers/Dashboard/Store_licensesController.php on line 3
-[11-Oct-2023 16:25:24 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/aowi4gyyecjj/public_html/app/Http/Controllers/Dashboard/Store_licensesController.php on line 3
