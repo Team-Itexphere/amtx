@@ -124,7 +124,7 @@
       <tr>
         <td colspan="2" style="width: 55%;">Testing Company: {{ $testing->customer->com_to_inv }}</td>
         <td style="width: 22.5%;">Phone #: {{ $testing->customer->str_phone }}</td>
-        <td style="width: 22.5%;">Date: {{ $testing->date }}</td>
+        <td style="width: 22.5%;">Date: {{ \Carbon\Carbon::parse($testing->date)->format('m/d/Y') }}</td>
       </tr>
       <tr>
         <td colspan="4">This procedure is to determine whether the automatic tank guage (ATG) is operating properly. See PEI/RP1200 Section 8.2 for the inspection procedure. This procedure is applicable to tank level monitor stems that touch the bottom of the tank when in place.</td>

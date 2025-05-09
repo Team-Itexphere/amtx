@@ -61,7 +61,6 @@ class Cus_licensesController extends Controller
         }
         
         $rules = [
-            'name' => 'required|string|max:300', 
             'id' => 'required',
         ];
         $rules['license_doc'] = $request->file('license_doc') ? 'mimes:pdf|max:20480' : ''; 
@@ -105,7 +104,7 @@ class Cus_licensesController extends Controller
             return redirect('login');
         }
 
-        if (auth()->user()->role > 4 && auth()->user()->role != 6) {
+        if (auth()->user()->role > 3) {
             return abort(404);
         }
         
@@ -117,7 +116,6 @@ class Cus_licensesController extends Controller
         }
             
         $rules = [
-            'nw_name' => 'required|string|max:300',
             'li_id' => 'required|string|max:300',
         ];  
         $rules['nw_license_doc'] = $request->file('nw_license_doc') ? 'mimes:pdf|max:20480' : ''; 
@@ -180,7 +178,7 @@ class Cus_licensesController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
 
             $licenses = Cus_licenses::where('customer_id', $cus_id)->get();
 

@@ -46,29 +46,29 @@
         </div>
         <div class="row mb-3">
             <div class="col-md-6">
-                <label for="name" class="form-label">Store Name <span class="text-danger">*</span></label>
+                <label for="name" class="form-label"><span class="cus-lb">Store </span><span class="emp-lb">Employee </span>Name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="name" name="name" value="{{ $user->name }}" required>
             </div> 
             <div class="col-md-6">
-                <label for="phone" class="form-label">Store Number <span class="text-danger">*</span></label>
+                <label for="phone" class="form-label"><span class="cus-lb">Store </span><span class="emp-lb">Employee </span>Number <span class="text-danger">*</span></label>
                 <input type="tel" class="form-control" id="phone" name="phone" value="{{ $user->phone }}" required>
             </div> 
         </div>
         <div class="row mb-3">
             <div class="col-md-6">
-                <label for="email" class="form-label"><span id="cus-lb">Store </span>Email <span class="text-danger">*</span></label>
+                <label for="email" class="form-label"><span class="cus-lb">Store </span><span class="emp-lb">Employee </span>Email <span class="text-danger">*</span></label>
                 <input type="email" class="form-control" id="email" name="email" value="{{ $user->email }}" required>
             </div>
             <div class="col-md-6">
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password">
             </div>
-            <div id="fleet-wrap" class="col-md-6 pt-3">
+            {{--<div id="fleet-wrap" class="col-md-6 pt-3">
                 <label for="name" class="form-label">Fleet</label>
                 <input type="text" class="form-control" id="fleet" name="fleet" value="{{ $user->fleet }}">
-            </div>
+            </div>--}}
         </div>
-        <div class="row mb-3 customer-add" style="display:none;">
+        {{--<div class="row mb-3 customer-add" style="display:none;">
             <h6 class="text-center my-5">Additional Customer Details</h6>
             <div class="col-md-6">
                 <label for="com_name" class="form-label">Corporation Name</label>
@@ -83,6 +83,20 @@
             <div class="col-md-6">
                 <label for="str_addr" class="form-label">Store Address</label>
                 <input type="text" class="form-control" id="str_addr" name="str_addr" value="{{ $user->str_addr }}">
+            </div> 
+            <div class="col-md-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" id="city" name="city" value="{{ $user->city }}">
+            </div>
+            <div class="col-md-3">
+                <label for="state" class="form-label">State</label>
+                <input type="text" class="form-control" id="state" name="state" value="{{ $user->state }}">
+            </div>
+        </div>
+        <div class="row mb-3 customer-add" style="display:none;">
+            <div class="col-md-6">
+                <label for="zip_code" class="form-label">Zip Code</label>
+                <input type="text" class="form-control" id="zip_code" name="zip_code" value="{{ $user->zip_code }}">
             </div> 
             <div class="col-md-6">
                 <label for="str_phone" class="form-label">Contact Person Phone Number</label>
@@ -111,10 +125,11 @@
                 <label for="fac_id" class="form-label">Facility ID (Unique)</label>
                 <input type="text" class="form-control" id="fac_id" name="fac_id" value="{{ $user->fac_id }}">
             </div>
-        </div>
+        </div>--}}
         <button type="submit" class="btn btn-primary mt-2">Update</button>
     </form>
 </div>
+
 
 <script>
 
@@ -124,17 +139,18 @@ $(document).ready(function() {
 
         if (roleVal < 4) {
             $('.customer-add *, #fleet-wrap *').prop('disabled', true);
-            $('.customer-add, #fleet-wrap, #cus-lb').hide();
+            $('.customer-add, #fleet-wrap, .cus-lb').hide();
+            $('.emp-lb').show();
         } else if (roleVal == 4 || roleVal == 5) {
             $('.customer-add *').prop('disabled', true);
             $('#fleet-wrap *').prop('disabled', false);
-            $('.customer-add, #cus-lb').hide();
-            $('#fleet-wrap').show();
+            $('.customer-add, .cus-lb').hide();
+            $('#fleet-wrap, .emp-lb').show();
         } else {
             $('.customer-add *').prop('disabled', false);
             $('#fleet-wrap *').prop('disabled', true);
-            $('.customer-add, #fleet-wrap *, #cus-lb').show();
-            $('#fleet-wrap').hide();
+            $('.customer-add, #fleet-wrap *, .cus-lb').show();
+            $('#fleet-wrap, .emp-lb').hide();
         }
     };
 

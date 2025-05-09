@@ -24,8 +24,10 @@
 
 <div class="container pt-2 bg-white rounded">
     <div class="d-flex justify-content-between align-items-center mb-5">
-        <h2>Assign Route</h2>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addListModal"><i class="fa fa-plus"></i> Assign List</button>
+        <h2>{{ Auth::user()->role == 5 ? 'Route Lists' : 'Assign Route' }}</h2>
+        @if(Auth::user()->role !== 5)
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addListModal"><i class="fa fa-plus"></i> Assign List</button>
+        @endif
     </div>
     <div class="row mb-4">
         <div class="col-md-2 pe-0">
@@ -33,7 +35,7 @@
                 <option value="0">-- Status --</option>
                 <option value="pending" {{ isset($_GET['status']) && $_GET['status'] == 'pending' ? 'selected' : '' }}>Pending</option>
                 <option value="assigned" {{ isset($_GET['status']) && $_GET['status'] == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                <option value="accepted" {{ isset($_GET['status']) && $_GET['status'] == 'accepted' ? 'selected' : '' }}>Accepted</option>
+                <option value="accepted" {{ isset($_GET['status']) && $_GET['status'] == 'accepted' ? 'selected' : '' }}>In Progress</option>
                 <option value="completed" {{ isset($_GET['status']) && $_GET['status'] == 'completed' ? 'selected' : '' }}>Completed</option>
             </select>
         </div>
@@ -85,38 +87,44 @@
                         <td class="align-middle">{{ $route_list->route->num }}</td>
                         <td class="align-middle">{{ $route_list->route->name }}</td>
                         <td class="align-middle">{{ $route_list->start_date ? \Carbon\Carbon::parse($route_list->start_date)->format('m/d/Y') : 'Not Scheduled' }}</td>
-                        <td class="align-middle">{{ $route_list->comp_date }}</td>
-                        <td class="align-middle">{{ $route_list->technician ? $route_list->technician->name : '' }}</td>
+                        <td class="align-middle">{{ $route_list->comp_date ? \Carbon\Carbon::parse($route_list->comp_date)->format('m/d/Y') : '' }}</td>
+                        <td class="align-middle">{{ $route_list->technicians()->orderBy('id', 'desc')->pluck('name')->implode(', ') ?? '' }}</td>
                         @php
-                            $status = $route_list->status == 'pending' ? 'Pending' : ($route_list->status == 'completed' ? 'Completed' : null);
-                            if($status != 'Completed'){
+                            $status = $route_list->status == 'pending' || !$route_list->start_date ? 'Pending' : ($route_list->status == 'completed' ? 'Completed' : null);
+                            if($status != 'Completed' && $route_list->start_date){
                             
                                 $status = 'Not Assigned';
-                                if ($route_list->testings->count() > 0) {
-                                    
-                                    $status = 'Accepted';
-                                    $pendingTests = $route_list->testings()->where('status', 'pending')->get();
-                                    if (count($pendingTests) > 0) {
-                                        foreach($pendingTests as $test){
-                                            if($test->testing_meta->count() > 0){
-                                                $status = 'In Progress';
-                                                break;
+                                if ($route_list->technicians->count() > 0) {
+                                    $status = 'Assigned';
+                                    if($route_list->testings->count() > 0){
+                                        /*$status = 'Accepted';*/
+                                        $status = 'In Progress';
+                                        $pendingTests = $route_list->testings()->where('status', 'pending')->get();
+                                        
+                                        if (count($pendingTests) > 0) {
+                                        
+                                            foreach($pendingTests as $test){
+                                                if($test->testing_meta->count() > 0){
+                                                    $status = 'In Progress';
+                                                    break;
+                                                }
                                             }
+                                            
                                         }
                                     }
                                     
-                                } elseif ($route_list->tech_id) {
-                                    $status = 'Assigned';
                                 }
                             
                             }
                         @endphp
                         <td class="align-middle text-center">{{ $status }}</td>
-                        <td class="align-middle text-center">
+                        <td class="align-middle text-center" style="width: 105px;">
                             <button class="btn btn-primary p-0 px-1" onclick="window.location.href='{{ route('routes', ['view_rl' => $route_list->id]) }}'"><i class="fa fa-eye"></i></button>
-                            <button type="button" class="btn btn-primary p-0 px-1 list-edit-button" data-bs-toggle="modal" data-bs-target="#editListModal" data-list-id="{{ $route_list->id }}" data-ro-id="{{ $route_list->route->id }}" data-tech-id="{{ $route_list->tech_id }}"><i class="fa fa-edit"></i></button>
+                            @if(Auth::user()->role < 4)
+                                <button type="button" class="btn btn-primary p-0 px-1 list-edit-button" data-bs-toggle="modal" data-bs-target="#editListModal" data-list-id="{{ $route_list->id }}" data-ro-id="{{ $route_list->route->id }}" data-tech-ids="{{ $route_list->technicians()->pluck('id')->implode(',') }}"><i class="fa fa-edit"></i></button>
+                            @endif
                             @if($route_list->technician)
-                            <button class="btn btn-danger unassign" data-action="dashboard/routes/unassign/{{ $route_list->id }}"><img src="{{ asset('img') }}/unassign.png" width="20" /></button>
+                                <button class="btn btn-danger unassign" data-action="dashboard/routes/unassign/{{ $route_list->id }}"><img src="{{ asset('img') }}/unassign.png" width="20" /></button>
                             @endif
                         </td>
                     </tr>
@@ -140,20 +148,30 @@
         <form id="nw-list-ad" action="{{ url('/dashboard/route/add-rl') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="row mb-3">
+                <div class="col-12">
+                    <label for="add-com" class="form-label">Company <span class="text-danger">*</span></label>
+                    <select class="form-select" id="add-com">
+                        <option value="Both">Both</option>
+                        <option value="AMTS">AMTS</option>
+                        <option value="PTS">Petro-Tank Solutions</option>
+                    </select> 
+                </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-6">
                     <label for="route_id" class="form-label">Route <span class="text-danger">*</span></label>
                     <select class="form-select" id="route_id" name="route_id" required>
                         @foreach($routes as $route)
-                            <option value="{{ $route->id }}">{{ $route->name }}</option>
+                            <option value="{{ $route->id }}" data-ref="{{ $route->ro_locations->first()->customer->com_to_inv }}">{{ $route->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-6">
                     <label for="tech_id" class="form-label">Technician <span class="text-danger">*</span></label>
-                    <select class="form-select" id="tech_id" name="tech_id">
+                    <select class="form-select" id="tech_ids" name="tech_ids[]" multiple>
                         <option value="0">-- Select Technician --</option>
                         @foreach($technicians_all as $technician)
-                            <option value="{{ $technician->id }}">{{ $technician->name }}</option>
+                            <option value="{{ $technician->id }}" data-ref="{{ $technician->work_for }}">{{ $technician->name }}</option>
                         @endforeach
                     </select> 
                 </div>
@@ -189,20 +207,30 @@
             @csrf
             <input type="hidden" id="rl_id"  name="rl_id" value="">
             <div class="row mb-3">
+                <div class="col-12">
+                    <label for="edit-com" class="form-label">Company <span class="text-danger">*</span></label>
+                    <select class="form-select" id="edit-com">
+                        <option value="Both">Both</option>
+                        <option value="AMTS">AMTS</option>
+                        <option value="PTS">Petro-Tank Solutions</option>
+                    </select> 
+                </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-6">
                     <label for="nw_route_id" class="form-label">Route <span class="text-danger">*</span></label>
                     <select class="form-select" id="nw_route_id" name="nw_route_id" required>
                         @foreach($routes as $route)
-                            <option value="{{ $route->id }}">{{ $route->name }}</option>
+                            <option value="{{ $route->id }}" data-ref="{{ $route->ro_locations->first()->customer->com_to_inv }}">{{ $route->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-6">
                     <label for="nw_tech_id" class="form-label">Technician <span class="text-danger">*</span></label>
-                    <select class="form-select" id="nw_tech_id" name="nw_tech_id">
-                        <option value="0">-- Select Technician --</option>
+                    <select class="form-select" id="nw_tech_ids" name="nw_tech_ids[]" multiple>
+                        <option value="0">- Unassign Technician -</option>
                         @foreach($technicians_all as $technician)
-                            <option value="{{ $technician->id }}">{{ $technician->name }}</option>
+                            <option value="{{ $technician->id }}" data-ref="{{ $technician->work_for }}">{{ $technician->name }}</option>
                         @endforeach
                     </select> 
                 </div>
@@ -267,21 +295,47 @@ $(document).ready(function() {
 </script>
 
 <script>
-var tech_id = document.querySelector('#tech_id');
+var tech_ids = document.querySelector('#tech_ids');
 var route_id = document.querySelector('#route_id');
-var nw_tech_id = document.querySelector('#nw_tech_id');
+var nw_tech_ids = document.querySelector('#nw_tech_ids');
 var nw_route_id = document.querySelector('#nw_route_id');
-dselect(tech_id, {
+dselect(tech_ids, {
     search: true
 });
 dselect(route_id, {
     search: true
 });
-dselect(nw_tech_id, {
+dselect(nw_tech_ids, {
     search: true
 });
 dselect(nw_route_id, {
     search: true
+});
+
+$('#add-com').change( function() {
+    var add_com = $(this).val();
+    $('#nw-list-ad [data-ref="AMTS"], #nw-list-ad [data-ref="PTS"], #nw-list-ad [data-ref="AMTX"], #nw-list-ad [ref="Petro-Tank Solutions"]').hide();
+    
+    if(add_com == 'Both'){
+        $('#nw-list-ad [data-ref="AMTS"], #nw-list-ad [data-ref="PTS"], #nw-list-ad [data-ref="AMTX"], #nw-list-ad [ref="Petro-Tank Solutions"]').show();
+    } else if (add_com == 'AMTS'){
+        $('#nw-list-ad [data-ref="AMTS"], #nw-list-ad [data-ref="AMTX"]').show();
+    } else if (add_com == 'PTS'){
+        $('#nw-list-ad [data-ref="PTS"], #nw-list-ad [data-ref="Petro-Tank Solutions"]').show();
+    }
+});
+
+$('#edit-com').change( function() {
+    var edit_com = $(this).val();
+    $('#edit-list [data-ref="AMTS"], #edit-list [data-ref="PTS"], #edit-list [data-ref="AMTX"], #edit-list [data-ref="Petro-Tank Solutions"]').hide();
+    
+    if(edit_com == 'Both'){
+        $('#edit-list [data-ref="AMTS"], #edit-list [data-ref="PTS"], #edit-list [data-ref="AMTX"], #edit-list [data-ref="Petro-Tank Solutions"]').show();
+    } else if (edit_com == 'AMTS'){
+        $('#edit-list [data-ref="AMTS"], #edit-list [data-ref="AMTX"]').show();
+    } else if (edit_com == 'PTS'){
+        $('#edit-list [data-ref="PTS"], #edit-list [data-ref="Petro-Tank Solutions"]').show();
+    }
 });
 
 $(document).on('click', '.list-edit-button', function() {
@@ -290,8 +344,21 @@ $(document).on('click', '.list-edit-button', function() {
 
   var ro_id = $(this).data('ro-id');
   $('#nw_route_id').parent().find('button[data-dselect-value="' + ro_id + '"]').click();
-  var tech_id = $(this).data('tech-id');
-  $('#nw_tech_id').parent().find('button[data-dselect-value="' + tech_id + '"]').click();
+  var tech_ids_arr = $(this).data('tech-ids');
+  
+  $('#nw_tech_ids').val([0]);
+  $('#nw_tech_ids').parent().find('button[data-dselect-value="0"]').click();
+  $('#nw_tech_ids').parent().find('.dselect-tag-remove').click();
+  
+  if (tech_ids_arr) {
+    var idsArray = /,/.test(tech_ids_arr) ? tech_ids_arr.split(',') : [tech_ids_arr];
+    
+    idsArray.forEach(function(id) {
+        $('#nw_tech_ids').parent().find('button[data-dselect-value="' + id + '"]').click();
+    });
+  }
+  
+  $('#editListModal').click();
 
   var tr = $(this).closest('tr');
 

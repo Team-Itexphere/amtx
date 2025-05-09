@@ -27,7 +27,7 @@
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
 
-    <link rel="stylesheet" href="{{asset('css/app.css')}}">
+    <link rel="stylesheet" href="{{asset('css/app.css?v=1.0')}}">
 
 <script>
 
@@ -198,8 +198,9 @@ function dselect(el, option = {}) {
         const active = option.selected ? ' active' : ''
         const disabled = el.multiple && option.selected ? ' disabled' : ''
         const value = option.value
+        const data_ref = $(option).data('ref') || ''
         const text = option.textContent
-        items.push(`<button${hidden} class="dropdown-item${active}" data-dselect-value="${value}" type="button" onclick="dselectUpdate(this, '${classElement}', '${classToggler}')"${disabled}>${text}</button>`)
+        items.push(`<button${hidden} class="dropdown-item${active}" data-dselect-value="${value}" data-ref="${data_ref}" type="button" onclick="dselectUpdate(this, '${classElement}', '${classToggler}')"${disabled}>${text}</button>`)
       }
     }
     items = items.join('')
@@ -261,11 +262,66 @@ function dselect(el, option = {}) {
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm position-sticky" style="top:0;">
-            <div class="container">
+        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm position-sticky d-none d-lg-block p-0" style="top:0; z-index: 99;">
+            <div class="container mw-100">
                 <!--<a class="navbar-brand" href="{{ url('/') }}">
                 MVMS{{ config('app.name', 'Laravel') }}
                 </a>-->
+                <style>
+                    .navbar .navbar-brand {
+                        position: relative;
+                        padding-right: 50px;
+                        height: 75px;
+                        display: flex;
+                        align-items: center;
+                    }
+                    
+                    .navbar .navbar-brand::after {
+                        position: absolute;
+                        content: "";
+                        width: 50px;
+                        height: 100%;
+                        top: 0;
+                        right: -25px;
+                        transform: skewX(-30deg);
+                        background-color: #ed6d2b;
+                    }
+                    
+                    @media(max-width: 768px) {
+                        .main-logo, .pts-logo {
+                            width: 30%;
+                            height: auto;
+                        }
+                        
+                        .pts-logo {
+                            margin-left: 5px !important;
+                        }
+                        
+                        #sidebar .pts-logo {
+                            margin-left: 3rem !important;
+                        }
+                        
+                        .amt-logo {
+                            width: 100%;
+                            height: auto;
+                        }
+                        
+                        .navbar .navbar-brand::after {
+                            width: 20px !important;
+                            right: -30px !important;
+                        }
+                        
+                        .navbar .navbar-brand {
+                            padding-right: unset !important;
+                            height: 60px;
+                        }
+                    }
+                </style>
+                <a href="/" class="navbar-brand ps-1 me-0 main-logo">
+                    <img src="{{ asset('img') }}/{{ config('app.logo', 'Laravel') }}" height="70" class="amt-logo" />
+                </a>
+                <img src="{{ asset('img') }}/pts-logo.png" class="ms-5 pts-logo" height="70" />
+                
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -294,7 +350,7 @@ function dselect(el, option = {}) {
                             @endif
                             @if(Auth::user()->role == 1)
                               <a class="nav-link user-logs" href="{{ route('user-logs') }}">
-                                <i class="fa fa-eye"></i> User Logs
+                                <i class="fa fa-eye"></i> User Logs (Time: {{ now()->format('m/d/Y h:i A') }})
                               </a>
                             @endif
                             <li class="nav-item dropdown">
@@ -320,7 +376,7 @@ function dselect(el, option = {}) {
             </div>
         </nav>
 
-        <main class="py-4">
+        <main class="py-4 pt-lg-0 pt-5">
             @section('sidebar')
             @show
             @yield('content')
@@ -350,6 +406,52 @@ $(document).ready(function() {
           var action = $(this).data('action');
           var type = $(this).data('type');
           window.location.href = '{{ url('/delete') }}/' + action;
+
+        }
+    });
+  });
+  
+  $('.delete-ajax').click(function(){
+    let button = $(this);
+    
+    Swal.fire({
+        title: 'Confirmation',
+        text: 'Are you sure you want to proceed?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+          
+            var action = button.data('action');
+            
+
+            $.ajax({
+                url: '{{ url('/delete') }}/' + action,
+                type: 'GET',
+                success: function (response) {
+                    if (response.message === 'deleted') {
+                        button.closest('.item').remove();
+                        
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'The item has been deleted.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Something went wrong. Please try again.',
+                        icon: 'error'
+                    });
+                }
+            });
 
         }
     });

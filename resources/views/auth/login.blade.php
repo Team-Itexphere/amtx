@@ -25,13 +25,40 @@ body {
     margin-bottom: -12px;
     margin-top: 2px;
 }
+
+.login-logo-cont {
+    min-height: 450px; 
+    padding:60px 0 20px 0; 
+    display: inline-grid; 
+    align-content: center; 
+    background-color: #000000a3;
+}
+
+.login-logo {
+    width: 60%; 
+    height: auto; 
+    margin: 40px auto 70px auto; 
+    margin-bottom: 50px; 
+    border-radius: 15px;
+}
+
+@media (max-width: 678px) {
+.login-logo-cont {
+    min-height: unset;
+}
+
+.login-logo {
+    margin: 10px auto 40px auto; 
+    margin-bottom: 40px;
+}
+}
 </style>
 
 <div class="container my-auto">
     <div class="row justify-content-center" style="min-height: calc(100vh - 50px);">
         <div class="col-sm-8 my-auto">
-            <div class="row" style="box-shadow: 0 0 10px #1b1b1b47; margin: 20px; border-radius:2px;">
-                <div class="col" style="backdrop-filter: blur(10px); background-color: hsla(0, 0%, 10%, 0.1); padding:20px 0; border-radius:2px 0 0 2px; display: inline-grid; align-content: center;">
+            <div class="d-flex flex-column-reverse flex-md-row" style="box-shadow: 0 0 10px #1b1b1b47; margin: 20px; border-radius:2px;">
+                <div class="col p-4" style="backdrop-filter: blur(10px); background-color: hsla(0, 0%, 10%, 0.1); padding:20px 0; border-radius:2px 0 0 2px; display: inline-grid; align-content: center;">
                     <form method="POST" action="{{ route('login') }}" id="lg-form">
                         @csrf
 
@@ -65,8 +92,8 @@ body {
                             </div>
                         </div>
 
-                        <div class="row mb-3 above-btn">
-                            <div class="col-md-4 pe-1 offset-md-2">
+                        <div class="d-flex col-12 col-lg-8 m-auto ms-auto justify-content-between px-2 mb-3 above-btn">
+                            <div class="col-md-6 text-nowrap pe-1">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
 
@@ -75,9 +102,9 @@ body {
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-4 text-end ps-1">
+                            <div class="col-md-6 text-end ps-1">
                                 @if (Route::has('password.request'))
-                                    <a class="btn form-check-label text-white" href="{{ route('password.request') }}" style="padding:0; font-size: 14px;">
+                                    <a class="btn form-check-label text-nowrap text-white" href="{{ route('password.request') }}" style="padding:0; font-size: 14px;">
                                         {{ __('Forgot Password?') }}
                                     </a>
                                 @endif
@@ -92,14 +119,14 @@ body {
                             </div>
                         </div>
                     </form>
-                    <small class="text-center mt-4"><a class="text-white" href="/">
+                    <small class="text-center mt-4"><a class="text-white" href="{{ url('/') }}">
                         <i class="fa-solid fa-arrow-left me-1"></i> Go to {{ config('app.name', 'Laravel') }}
                     </a></small>
                 </div>
-                <div class="col" style="min-height: 450px; padding:60px 0 20px 0; display: inline-grid; align-content: center; background-color: #000000a3;">
+                <div class="col login-logo-cont">
                     <h1 class="text-center text-white" style="font-family: 'Audiowide', sans-serif;">{{ config('app.name', 'Laravel') }}</h1>
-                    <a href="/" class="text-center">    
-                        <img src="{{ asset('img') }}/{{ config('app.logo', 'Laravel') }}" class="p-2" style="width:60%; height:auto; margin: 40px auto 70px auto; margin-bottom: 50px; border-radius: 15px;">
+                    <a href="{{ url('/') }}" class="text-center">    
+                        <img src="{{ asset('img') }}/{{ config('app.logo', 'Laravel') }}" class="p-2 login-logo">
                     </a>
                 </div>
             </div>

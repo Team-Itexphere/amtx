@@ -31,9 +31,9 @@
 
         <form class="col-md-2 ms-auto" method="get" action="{{ url()->current() }}">
             @foreach(request()->query() as $key => $value)
-            @if ($key !== 'per_page')
-                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-            @endif
+                @if ($key !== 'per_page')
+                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                @endif
             @endforeach
           <div class="form-group d-flex justify-content-end align-items-center">
             <label for="per_page" class="me-1">Items Per Page:</label>
@@ -59,92 +59,123 @@
                     <th>Customer</th>
                     <th>Status</th>
                     <th>Technician</th>
-                    <th>Date</th>
-                    <th>Time</th>
+                    <th>Date Created</th>
+                    <th>Time Created</th>
                     @if(isset($_GET['comp']))
                         <th>Completed Date</th>
                         <th>Completed Time</th>
                     @endif
-                    <th>{{ Auth::user()->role < 6 ? 'Customer\'s comment' : 'Comment'}}</th>
+                    <th>Store Comment</th>
                     @if(Auth::user()->role < 6)
                         <th>Priority</th>
                     @endif
                     <th>Office Comment</th>
+                    <th>Tech Comment</th>
                     <th class="text-center">Images</th>
+                    <th class="text-center">Invoiced</th>
+                    @if(Auth::user()->role == 1)
+                        <th>Action</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
                 @php
                     $has_calls = false;
                 @endphp
-                @foreach($work_orders as $work_order)
-                    @php
-                        if( count($work_order->service_calls) > 0 ){
-                            $has_calls = true;                        
-                        }
-                    @endphp
-                    <tr>
-                        <td class="align-middle">
-                            @if(Auth::user()->role < 5 || !isset($_GET['comp']))
-                                <a href="{{ route('work-orders', ['edit' => $work_order->id]) }}">{{ $work_order->wo_number }}</a>
-                            @else
-                                {{ $work_order->wo_number }}
-                            @endif
-                        </td>
-                        @if(Auth::user()->role < 6)
-                            <td class="align-middle">{{ $work_order->createdByUser?->role == 6 ? 'Customer' : 'Office' }}</td>
-                        @endif
-                        <td class="align-middle">{{ $work_order->customer->name }}</td>
-                        <td class="align-middle">{{ $work_order->status }}</td>
-                        <td class="align-middle">{{ $work_order->technician ? $work_order->technician->name : '' }}</td>
-                        <td class="align-middle">{{ $work_order->date ? \Carbon\Carbon::parse($work_order->date)->format('m/d/Y') : '' }}</td>
-                        <td class="align-middle">{{ $work_order->time ? \Carbon\Carbon::parse($work_order->time)->format('h:i A') : '' }}</td>
-                        @if(isset($_GET['comp']))
-                            <td class="align-middle">{{ $work_order->comp_date ? \Carbon\Carbon::parse($work_order->comp_date)->format('m/d/Y') : '' }}</td>
-                            <td class="align-middle">{{ $work_order->comp_time ? \Carbon\Carbon::parse($work_order->comp_time)->format('h:i A') : '' }}</td>
-                        @endif
-                        <td class="align-middle">
-                            @if($work_order->description)
-                                @if(count($work_order->description) > 1)
-                                    {{ $work_order->description[0][0] }} ({{ $work_order->description[0][1] }})
-                                    <span class="cus-cmnts" data-bs-content="
-                                        @foreach($work_order->description as $comnt)
-                                            {{ $comnt[0] }} ({{ $comnt[1] }}) <br>
-                                        @endforeach
-                                    " data-bs-toggle="popover" data-bs-placement="right" title="Customer's Comments">
-                                        <i class="fa fa-paperclip text-primary"></i>
-                                    </span>
+                @if($work_orders)
+                    @foreach($work_orders as $work_order)
+                        @php
+                            if( count($work_order->service_calls) > 0 ){
+                                $has_calls = true;                        
+                            }
+                        @endphp
+                        <tr>
+                            <td class="align-middle">
+                                @if(Auth::user()->role < 5 || !isset($_GET['comp']))
+                                    <a href="{{ route('work-orders', ['edit' => $work_order->id]) }}">{{ $work_order->wo_number }}</a>
                                 @else
-                                    {{ $work_order->description[0][0] }} ({{ $work_order->description[0][1] }})
+                                    {{ $work_order->wo_number }}
                                 @endif
+                            </td>
+                            @if(Auth::user()->role < 6)
+                                <td class="align-middle">{{ $work_order->createdByUser?->name ?? 'Unknown' }} {{ $work_order->createdByUser?->role == 6 ? '(Customer)' : '(Office)' }}</td>
                             @endif
-                        </td>
-                        @if(Auth::user()->role < 6)    
-                            <td class="align-middle">{{ $work_order->priority }}</td>
-                        @endif
-                        <td class="align-middle">
-                            @if($work_order->comment)
-                                @if(count($work_order->comment) > 1)
-                                    {{ $work_order->comment[0][0] }} ({{ $work_order->comment[0][1] }})
-                                    <span class="office-cmnts" data-bs-content="
-                                        @foreach($work_order->comment as $comnt)
-                                            {{ $comnt[0] }} ({{ $comnt[1] }}) <br>
-                                        @endforeach
-                                    " data-bs-toggle="popover" data-bs-placement="right" title="Office Comments">
-                                        <i class="fa fa-paperclip text-primary"></i>
-                                    </span>
-                                @else
-                                    {{ $work_order->comment[0][0] }} ({{ $work_order->comment[0][1] }})
+                            <td class="align-middle">{{ $work_order->customer->name }}</td>
+                            <td class="align-middle">{{ $work_order->status }}</td>
+                            <td class="align-middle">{{ $work_order->technician ? $work_order->technician->name : '' }}</td>
+                            <td class="align-middle">{{ $work_order->date ? \Carbon\Carbon::parse($work_order->date)->format('m/d/Y') : '' }}</td>
+                            <td class="align-middle">{{ $work_order->time ? \Carbon\Carbon::parse($work_order->time)->format('h:i A') : '' }}</td>
+                            @if(isset($_GET['comp']))
+                                <td class="align-middle">{{ $work_order->comp_date ? \Carbon\Carbon::parse($work_order->comp_date)->format('m/d/Y') : '' }}</td>
+                                <td class="align-middle">{{ $work_order->comp_time ? \Carbon\Carbon::parse($work_order->comp_time)->format('h:i A') : '' }}</td>
+                            @endif
+                            <td class="align-middle">
+                                @if($work_order->description)
+                                    @if(count($work_order->description) > 1)
+                                        {{ $work_order->description[0][0] }} ({{ $work_order->description[0][1] }})
+                                        <span class="cus-cmnts" data-bs-content="
+                                            @if($work_order && $work_order->description)
+                                                @foreach($work_order->description as $comnt)
+                                                    {{ $comnt[0] }} ({{ $comnt[1] }}) <br>
+                                                @endforeach
+                                            @endif
+                                        " data-bs-toggle="popover" data-bs-placement="right" title="Customer's Comments">
+                                            <i class="fa fa-paperclip text-primary"></i>
+                                        </span>
+                                    @else
+                                        {{ $work_order->description[0][0] }} ({{ $work_order->description[0][1] }})
+                                    @endif
                                 @endif
+                            </td>
+                            @if(Auth::user()->role < 6)    
+                                <td class="align-middle">{{ $work_order->priority }}</td>
                             @endif
-                        </td>
-                        <td class="align-middle text-center">
-                            @if( count($work_order->service_calls) > 0 )
-                                <a href="#" class="service-call-btn" data-bs-toggle="modal" data-bs-target="#service_callModal" data-id="{{ $work_order->id }}">View</a>
+                            <td class="align-middle">
+                                @if($work_order->comment)
+                                    @if(count($work_order->comment) > 1)
+                                        {{ $work_order->comment[0][0] }} ({{ $work_order->comment[0][1] }})
+                                        <span class="office-cmnts" data-bs-content="
+                                            @foreach($work_order->comment as $comnt)
+                                                {{ $comnt[0] }} ({{ $comnt[1] }}) <br>
+                                            @endforeach
+                                        " data-bs-toggle="popover" data-bs-placement="right" title="Office Comments">
+                                            <i class="fa fa-paperclip text-primary"></i>
+                                        </span>
+                                    @else
+                                        {{ $work_order->comment[0][0] }} ({{ $work_order->comment[0][1] }})
+                                    @endif
+                                @endif
+                            </td>
+                            <td class="align-middle">
+                                @if($has_calls)
+                                    @if(count($work_order->service_calls) > 1)
+                                        {{ $work_order->service_calls[0]->comment }} ({{ $work_order->service_calls[0]->created_at->format('m/d/Y h:i A') }})
+                                        <span class="office-cmnts" data-bs-content="
+                                            @foreach($work_order->service_calls as $comnt)
+                                                {{ $comnt->comment }} ({{ $comnt->created_at->format('m/d/Y h:i A') }}) <br>
+                                            @endforeach
+                                        " data-bs-toggle="popover" data-bs-placement="right" title="Tech Comments">
+                                            <i class="fa fa-paperclip text-primary"></i>
+                                        </span>
+                                    @elseif(count($work_order->service_calls) == 1)
+                                        {{ $work_order->service_calls[0]->comment }} ({{ $work_order->service_calls[0]->created_at->format('m/d/Y h:i A') }})
+                                    @endif
+                                @endif
+                            </td>
+                            <td class="align-middle text-center">
+                                @if($has_calls)
+                                    <a href="#" class="service-call-btn" data-bs-toggle="modal" data-bs-target="#service_callModal" data-id="{{ $work_order->id }}">View</a>
+                                @endif
+                            </td>
+                            <td class="align-middle text-center">{{ $work_order->invoiced ? 'Yes' : 'No' }}</td>
+                            @if(Auth::user()->role == 1)
+                                <td class="align-middle text-center">
+                                    <button type="button" class="delete-item btn btn-danger p-0 px-1" data-action="work-orders/{{ $work_order->id }}"><i class="fa fa-trash-alt"></i></button>
+                                </td>
                             @endif
-                        </td>
-                    </tr>
-                @endforeach
+                        </tr>
+                    @endforeach
+                @endif
             </tbody>
         </table>
         <br>

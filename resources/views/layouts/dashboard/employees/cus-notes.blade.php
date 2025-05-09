@@ -19,8 +19,16 @@
         </div>
     </div>
     <div class="row mb-4">
+        <div class="col-md-2 pe-0">
+            <select class="form-select status-filter">
+                <option value="0">-- Status --</option>
+                <option value="Pending" {{ isset($_GET['status']) && $_GET['status'] == 'Pending' ? 'selected' : '' }}>Pending</option>
+                <option value="Completed" {{ isset($_GET['status']) && $_GET['status'] == 'Completed' ? 'selected' : '' }}>Completed</option>
+            </select>
+        </div>
         <div class="col-md-2">
-            <input type="text" class="form-control searchInput" placeholder="Search..." value="{{ isset($_GET['s']) ? $_GET['s'] : '' }}">
+           <button class="btn btn-primary filterButton">Filter</button>
+           <button class="btn btn-primary filterReset">Reset</button>
         </div>
 
         <form class="col-md-2 ms-auto" method="get" action="{{ url()->current() }}">
@@ -49,6 +57,8 @@
                     <th>Store</th> 
                     <th>Note</th>
                     <th>Date</th>
+                    <th>Created By</th>
+                    <th>Completed By</th>
                     <th class="text-center">Status</th>
                 </tr>
             </thead>
@@ -58,6 +68,8 @@
                         <td class="align-middle"><a href="#" class="edit-btn" data-bs-toggle="modal" data-bs-target="#editModal" data-id="{{ $note->id }}" data-fac="{{ $note->customer->fac_id }}" data-cus="{{ $note->customer->id }}" data-note="{{ $note->note }}" data-status="{{ $note->status && $note->status == 'Completed' ? 1 : 0 }}">{{ $note->customer->fac_id }} - {{ $note->customer->name }}</a></td>
                         <td class="align-middle">{{ $note->note }}</td>
                         <td class="align-middle">{{ $note->date }}</td>
+                        <td class="align-middle text-nowrap">{{ $note->creator_info }}</td>
+                        <td class="align-middle text-nowrap">{{ $note->completor_info }}</td>
                         <td class="align-middle text-center">{{ $note->status ?? 'Pending' }}</td>
                     </tr>
                 @endforeach
@@ -79,7 +91,7 @@
       <div class="modal-body">
         <form action="{{ url('/dashboard/route/add-note') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <div class="row mb-3">
+            <div class="row mb-3" style="{{ Auth::user()->role == 6 ? 'display: none;' : '' }}">
                 <div class="col-md-12">
                     <label for="customer_id" class="form-label">Store <span class="text-danger">*</span></label>
                     <select class="form-select" id="customer_id" name="customer_id">
@@ -109,7 +121,7 @@
   <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
     <div class="modal-content p-3">
       <div class="modal-header">
-        <h5 class="modal-title" id="editModalLabel">Edit Note <b>»</b> <span id="edit-cus-name"></span></h5>
+        <h5 class="modal-title" id="editModalLabel">{{ Auth::user()->role == 6 ? 'Note' : 'Edit Note' }} <b>»</b> <span id="edit-cus-name"></span></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -118,7 +130,7 @@
             <input type="hidden" class="form-control" id="note_id" name="note_id" value="">
             
             <div class="row mb-3">
-                <div class="col-md-12">
+                <div class="col-md-12" style="{{ Auth::user()->role == 6 ? 'display: none;' : '' }}">
                     <label for="cus_id" class="form-label">Store <span class="text-danger">*</span></label>
                     <select class="form-select" style="background: transparent; margin-bottom: -38px; position: relative;" disabled></select>
                     <select class="form-select" id="cus_id" name="cus_id">
@@ -131,19 +143,27 @@
             <div class="row mb-3">
                 <div class="col-md-12">
                     <label for="note" class="form-label">Note <span class="text-danger">*</span></label>
-                    <textarea id="edit-note" class="form-control" name="note"></textarea>
+                    <textarea id="edit-note" class="form-control" name="note" {!! Auth::user()->role > 1 ? 'readonly' : '' !!}></textarea>
                 </div>
             </div>
             <div class="row mb-3 px-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="com-check" name="com_check" value="1">
+                    <input class="form-check-input" type="checkbox" id="com-check" name="com_check" value="1" {!! Auth::user()->role == 6 ? 'onclick="return false;"' : '' !!}>
                     <label class="form-check-label" for="com-check">Complete</label>
                 </div>
             </div>
-            
-            <div class="col-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">Update</button>
+            <div class="row mb-3" id="reason-wrap" style="display: none;">
+                <div class="col-md-12">
+                    <label for="reason" class="form-label">Reason</label>
+                    <input type="text" id="reason" class="form-control" name="reason" />
+                </div>
             </div>
+            
+            @if(Auth::user()->role !== 6)
+                <div class="col-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            @endif
         </form>
       </div>
     </div>
@@ -157,23 +177,61 @@ dselect(customer_id, {
     search: true
 });
 
-$(document).ready(function() {
-    $('.edit-btn').click(function() {
-        var noteId = $(this).data('id');
-        var cus = $(this).data('fac');
-        var cus_id = $(this).data('cus');
-        var note = $(this).data('note');
-        var status = $(this).data('status');
-        $('#edit-cus-name').html(cus);
-        $('#note_id').val(noteId);
-        $('#cus_id').val(cus_id);
-        $('#edit-note').val(note);
+let isCompleted = false;
+
+$('.edit-btn').click(function() {
+    var noteId = $(this).data('id');
+    var cus = $(this).data('fac');
+    var cus_id = $(this).data('cus');
+    var note = $(this).data('note');
+    var status = $(this).data('status');
+    $('#edit-cus-name').html(cus);
+    $('#note_id').val(noteId);
+    $('#cus_id').val(cus_id);
+    $('#edit-note').val(note);
         
-        if(status == 1){
-            $('#com-check').prop('checked', true);
-        } else {
-            $('#com-check').prop('checked', false);
-        }
-    });
+    if(status == 1){
+        isCompleted = true;
+        $('#com-check').prop('checked', true);
+    } else {
+        isCompleted = false;
+        $('#com-check').prop('checked', false);
+    }
+});
+
+$('#com-check').change(function() {
+    if ($(this).is(':checked')) {
+        $('#reason-wrap').hide();
+    } else if (!isCompleted) {
+        $('#reason-wrap').hide();
+    } else {
+        $('#reason-wrap').show();
+    }
+});
+
+$('.filterButton').click(function() {
+    let currentUrl = new URL(window.location.href);
+    let params = new URLSearchParams(currentUrl.search);
+
+    var status = $('.status-filter').val();
+
+    if(status != 0){
+        params.set('status', status);
+    } else {
+        params.delete('status');
+    }
+
+    currentUrl.search = params.toString();
+    window.location.href = currentUrl.toString();
+});
+
+$('.filterReset').click(function() {
+    let currentUrl = new URL(window.location.href);
+    let params = new URLSearchParams(currentUrl.search);
+
+    params.delete('status');
+
+    currentUrl.search = params.toString();
+    window.location.href = currentUrl.toString();
 });
 </script>

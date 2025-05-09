@@ -17,7 +17,15 @@
     </div>
     <div class="row mb-4">
         <div class="col-md-2">
-            <input type="text" class="form-control searchInput" placeholder="Search..." value="{{ isset($_GET['s']) ? $_GET['s'] : '' }}">
+            <select class="form-select companyfilterSelect">
+                <option value="" {{ !isset($_GET['company']) ? 'selected' : '' }}>Filter by Company</option>
+                <option value="AMTS" {{ isset($_GET['company']) && $_GET['company'] == 'AMTS' ? 'selected' : '' }}>AMTS</option>
+                <option value="Petro-Tank Solutions" {{ isset($_GET['company']) && $_GET['company'] == 'Petro-Tank Solutions' ? 'selected' : '' }}>PTS</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary filterButton">Filter</button>
+            <button class="btn btn-primary filter-reset">Reset</button>
         </div>
 
         <form class="col-md-2 ms-auto" method="get" action="{{ url()->current() }}">
@@ -70,3 +78,37 @@
         {{ $routes->appends($_GET)->links('pagination::bootstrap-5') }}
     </div>
 </div>
+
+
+<script>
+    $(document).ready(function() {
+        $('.filterButton').click(function() {
+            let currentUrl = new URL(window.location.href);
+            let params = new URLSearchParams(currentUrl.search);
+    
+            var company = $('.companyfilterSelect').length > 0 ? $('.companyfilterSelect').val() : '';
+    
+            if(company){
+                params.set('company', company);
+            } else {
+                params.delete('company');
+            }
+            
+            params.delete('page');
+    
+            currentUrl.search = params.toString();
+            window.location.href = currentUrl.toString();
+        });
+    
+        $('.filter-reset').click(function() {
+            let currentUrl = new URL(window.location.href);
+            let params = new URLSearchParams(currentUrl.search);
+    
+            params.delete('company');
+            params.delete('page');
+            
+            currentUrl.search = params.toString();
+            window.location.href = currentUrl.toString();
+        });
+    });
+</script>

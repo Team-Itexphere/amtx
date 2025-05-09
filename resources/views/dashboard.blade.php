@@ -1,9 +1,8 @@
 @extends('layouts.app')
 
-
 @section('sidebar')
 
-<nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar sb">
+<nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-white sidebar pt-lg-5 mt-lg-5 sb">
     @include('layouts.dashboard.sidebar')
 </nav>
 
@@ -12,7 +11,7 @@
 
 @section('content')
 
-<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pt-4 main-right">
     @if(Auth::user()->role < 7)
         @if(Route::is('user-logs'))
             @include('layouts.dashboard.user-logs.list')
@@ -30,6 +29,10 @@
 
         @if(Route::is('cus-licenses'))
             @include('layouts.dashboard.employees.cus-licenses.list')
+        @endif
+        
+        @if(Route::is('cus-sir-inv-docs'))
+            @include('layouts.dashboard.employees.cus-sir-inv-docs.list')
         @endif
         
         @if(Route::is('cus-notes'))
@@ -120,18 +123,44 @@
       @elseif (request()->input('type') == 'release-detection-annual-testing')
         @include('layouts.dashboard.tests.forms.release-detection-annual-testing')
       @elseif (request()->input('type') == 'atg-test')
-        @include('layouts.dashboard.tests.forms.atg-test')  
+        @include('layouts.dashboard.tests.forms.atg-test')
+      @elseif (request()->input('type') == 'cs-test')
+        @include('layouts.dashboard.tests.forms.containment-sump-test')
+      @elseif (request()->input('type') == 'line-leak-test')
+        @include('layouts.dashboard.tests.forms.line-leak-test') 
+      @elseif (request()->input('type') == 'ls-test')
+        @include('layouts.dashboard.tests.forms.liquid-sensor-test')
+      @elseif (request()->input('type') == 'overfill-test')
+        @include('layouts.dashboard.tests.forms.overfill-test')  
+      @elseif (request()->input('type') == 'sb-test')
+        @include('layouts.dashboard.tests.forms.spill-bucket-test')
+      @elseif (request()->input('type') == 'gcp-test')
+        @include('layouts.dashboard.tests.forms.galvanic-cp-test')
+      @elseif (request()->input('type') == 'iccp-test')
+        @include('layouts.dashboard.tests.forms.impressed-current-cp-test')
+      @elseif (request()->input('type') == 'stage-1-test')
+        @include('layouts.dashboard.tests.forms.stage-1-test')
       @else
         @include('layouts.dashboard.tests.list')
       @endif
     @endif
 
     @if(Route::is('testing'))
+      @if (request()->has('questions'))
+        @include('layouts.dashboard.testing.questions')
+      @elseif (request()->has('edit'))
+        @include('layouts.dashboard.testing.edit')
+      @else
         @include('layouts.dashboard.testing.list')
+      @endif
     @endif
 
     @if(Route::is('my-profile'))
         @include('layouts.dashboard.employees.my-profile')
+    @endif
+    
+    @if(Route::is('my-pictures'))
+        @include('layouts.dashboard.employees.my-pictures')
     @endif
     
     @if(Route::is('dashboard'))
@@ -181,10 +210,47 @@
                 .ac-hd a[aria-expanded='true'] b {
                     rotate: 180deg;
                 }
+                
+                .custom-card {
+                    min-height: 100px;
+                    display: flex;
+                    align-items: center;
+                    border: none;
+                    border-radius: 8px;
+                    color: white;
+                    padding: 12px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                }
+                .custom-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+                }
+                .custom-icon {
+                    font-size: 1.8rem;
+                    margin-right: 20px;
+                    margin-left: 15px;
+                    opacity: 0.9;
+                }
+                .custom-title {
+                    font-size: 1rem;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    margin-bottom: 2px;
+                }
+                .custom-value {
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                }
+                .custom-card-inspection { background: linear-gradient(135deg, #007bff, #00c6ff); }
+                .custom-card-next { background: linear-gradient(135deg, #28a745, #85d335); }
+                .custom-card-orders { background: linear-gradient(135deg, #ffc107, #ff6f00); }
+                .custom-card-invoices { background: linear-gradient(135deg, #dc3545, #ff1744); }
             </style>
 
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <div class="row">
+            <div class="container-xxl flex-grow-1">
+              <div class="row mt-4 mt-lg-0">
                 <div class="col-lg-{{ auth()->user()->role < 3 ? 6 : 12 }} mb-4 order-0">
                   <div class="card">
                     <div class="d-flex align-items-end row">
@@ -212,7 +278,7 @@
                 <div class="col-lg-6 col-md-4 order-1">
                   <div class="row">
                     
-                    <div class="col-lg-6 col-md-12 col-6 mb-4">
+                    <div class="col-lg-6 col-md-12 col-12 mb-4">
                       <div class="card">
                         <div class="card-body">
                           <div class="card-title d-flex align-items-start justify-content-between">
@@ -227,16 +293,16 @@
                           </div>
                           <div class="d-flex mb-2 justify-content-between align-middle">
                             <p class="fw-semibold d-block my-auto">Total AMTS Routes</p>
-                            <h3 class="card-title my-auto"><a href="{{ route('routes', ['list', 'cus', 'cus_type' => 'AMTS']) }}">{{ $tot_am_ro }}</a></h3>
+                            <h3 class="card-title my-auto"><a href="{{ route('routes', ['list', 'cus', 'company' => 'AMTS']) }}">{{ $tot_am_ro }}</a></h3>
                           </div>
                           <div  class="d-flex justify-content-between align-middle">
                             <p class="fw-semibold d-block my-auto">Total PTS Routes</p>
-                            <h3 class="card-title my-auto"><a href="{{ route('routes', ['list', 'cus', 'cus_type' => 'Petro-Tank Solutions']) }}">{{ $tot_pt_ro }}</a></h3>
+                            <h3 class="card-title my-auto"><a href="{{ route('routes', ['list', 'cus', 'company' => 'Petro-Tank Solutions']) }}">{{ $tot_pt_ro }}</a></h3>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div class="col-lg-6 col-md-12 col-6 mb-4">
+                    <div class="col-lg-6 col-md-12 col-12 mb-4">
                       <div class="card">
                         <div class="card-body">
                           <div class="card-title d-flex align-items-start justify-content-between">
@@ -269,18 +335,105 @@
                 <div class="col-lg-{{ auth()->user()->role < 3 ? 8 : 12 }} order-2 order-md-3 order-lg-2 mb-4">
                   <div class="card">
                     <div class="row row-bordered g-0">
-                      <div class="col-md-{{ auth()->user()->role < 3 ? '12 pb-3' : '8 pb-3' }}" style="overflow-x: auto; overflow-y: hidden;">
-                        <div style="width: 750px;">
-                          <h5 class="card-header m-0 me-2 pb-3">Monthly Inspection</h5>
-                          <div id="totalRevenueChart" class="px-2"></div>
-                        </div>
+                      <div class="col-md-{{ auth()->user()->role < 3 || auth()->user()->role == 4 || auth()->user()->role == 5 ? '12 pb-3' : (auth()->user()->role == 6 ? '6 p-3' : '8 pb-3') }}" style="overflow-x: {{ auth()->user()->role !== 6 ? 'auto' : 'hidden' }}; overflow-y: hidden;">
+                        @if(auth()->user()->role !== 6)
+                            <div style="{{ auth()->user()->role !== 4 && auth()->user()->role !== 5 ? 'width: 750px;' : 'margin: 10px 20px 10px 10px;' }}">
+                              <h5 class="card-header m-0 me-2 pb-3">Monthly Inspection</h5>
+                              <div id="totalRevenueChart" class="px-2"></div>
+                            </div>
+                        @else
+                            @php
+                                $last_insp = auth()->user()->testings()->where('status', 'completed')->latest()->first();
+                                $next_insp = auth()->user()->ro_locations()->latest()->first()?->route->route_lists()->whereDate('start_date', '>=', today())->first();
+                                $pend_wo = auth()->user()->cus_work_orders()->where(function($query) {
+                                        $query->where('status', '!=', 'Completed')->orWhereNull('status');
+                                    })->count();
+                                $unpaid_inv = auth()->user()->invoices()->where(function($query) {
+                                        $query->where('payment', '!=', 'Paid')->orWhereNull('payment');
+                                    })->count();
+                            @endphp
+                            {{--<div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <a href="{{ route('testing') }}" class="text-decoration-none">
+                                        <div class="custom-card custom-card-inspection" style="cursor: {{ $last_insp ? 'pointer' : 'not-allowed' }};">
+                                            <i class="fas fa-calendar-check custom-icon"></i>
+                                            <div>
+                                                <div class="custom-title">Last Inspection</div>
+                                                <div class="custom-value">{{ $last_insp ? $last_insp->updated_at->format('m/d/Y') : 'N/A' }}</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ route('testing') }}" class="text-decoration-none">
+                                        <div class="custom-card custom-card-next">
+                                            <i class="fas fa-calendar-alt custom-icon"></i>
+                                            <div>
+                                                <div class="custom-title">Next Inspection</div>
+                                                <div class="custom-value">{{ $next_insp ? \Carbon\Carbon::parse($next_insp->start_date)->format('m/d/Y') : 'N/A' }}</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>--}}
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <a href="{{ route('testing') }}" class="text-decoration-none">
+                                        <div class="custom-card custom-card-inspection" style="cursor: {{ $last_insp ? 'pointer' : 'not-allowed' }};">
+                                            <i class="fas fa-calendar-check custom-icon"></i>
+                                            <div>
+                                                <div class="custom-title">Last Inspection</div>
+                                                <div class="custom-value">{{ $last_insp ? $last_insp->updated_at->format('m/d/Y') : 'N/A' }}</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-md-12">
+                                    <a href="{{ route('work-orders') }}" class="text-decoration-none">
+                                        <div class="custom-card custom-card-orders">
+                                            <i class="fas fa-tools custom-icon"></i>
+                                            <div>
+                                                <div class="custom-title">Pending Work Orders</div>
+                                                <div class="custom-value">{{ $pend_wo }}</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-md-12">
+                                    <a href="{{ route('invoice', ['status' => 'Unpaid']) }}" class="text-decoration-none">
+                                        <div class="custom-card custom-card-invoices">
+                                            <i class="fas fa-file-invoice-dollar custom-icon"></i>
+                                            <div>
+                                                <div class="custom-title">Unpaid Invoices</div>
+                                                <div class="custom-value">{{ $unpaid_inv }}</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
                       </div>
                       @if(auth()->user()->role == 6)
-                      <div class="col-md-4 d-flex justify-content-center">
+                      <div class="col-md-6 p-5 d-flex justify-content-center">
                         <div class="my-auto">
-                            <center><h5>Licenses (Expire Soon)</h5></center>
-                            @if($ex_licenses)
-                                <table id="ex-li-table" style="border: none; width: 100%;">
+                            <center><h4>Licenses & Others</h4></center>
+                            @php
+                                $licenses = auth()->user()->cus_licenses;
+                                $not_ex_licenses = $licenses->diff($ex_licenses)->unique();
+                            @endphp
+                            @if($ex_licenses || $not_ex_licenses)
+                                <style>
+                                    #ex-li-table tr {
+                                        font-size: 15px;
+                                    }
+                                    
+                                    @media(max-width: 768px) {
+                                        #ex-li-table {
+                                            width: 100% !important;
+                                        }
+                                    }
+                                </style>
+                                <table id="ex-li-table" style="border: none; width: 100%; font-size: 20px;">
                                     <thead>
                                         <tr>
                                             @if($stores_cnt > 1)
@@ -291,7 +444,25 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $today = \Carbon\Carbon::today();
+                                            $risk_period = $today->copy()->addDays(29);
+                                        @endphp
                                         @foreach($ex_licenses as $li)
+                                            @php
+                                                $ex_date = null;
+                                                $ex_soon = false;
+                                                if($li->expire_date){
+                                                    $ex_date = \Carbon\Carbon::parse($li->expire_date);
+                                                    
+                                                    if($ex_date->isPast() /*|| $ex_date->between($today, $risk_period)*/) {
+                                                        $ex_soon = true;
+                                                    }
+                                                    
+                                                    $ex_date = $ex_date->format('m/d/Y');
+                                                }
+                                            @endphp
+                                        
                                             @if($stores_cnt > 1)
                                                 <tr>
                                                     <td class="bd-bot px-1"><b>{{ $li->customer->name }}</b></td>
@@ -300,13 +471,33 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="bd-bot px-1"></td>
-                                                    <td class="bd-bot px-1">{{ $li->name }}</td>
-                                                    <td class="bd-bot px-1">{{ \Carbon\Carbon::parse($li->expire_date)->format('m/d/Y') }}</td>
+                                                    <td class="bd-bot px-1">{{ $li->type == 'Annual' || $li->type == 'Monthly' || $li->type == 'Every 3 years' ? $li->name : $li->type }}</td>
+                                                    <td class="bd-bot px-1 text-end" style="{{ $ex_soon ? 'font-weight: 700; color: red;' : 'color: red;' }}">{{ $ex_date }}</td>
                                                 </tr>
                                             @else
                                                 <tr>
-                                                    <td class="bd-bot px-1">{{ $li->name }}</td>
-                                                    <td class="bd-bot px-1">{{ \Carbon\Carbon::parse($li->expire_date)->format('m/d/Y') }}</td>
+                                                    <td class="bd-bot px-1">{{ $li->type == 'Annual' || $li->type == 'Monthly' || $li->type == 'Every 3 years' ? \App\Http\Controllers\Dashboard\Comp_docsController::comp_doc_types($li->name) : $li->type }}</td>
+                                                    <td class="bd-bot px-1 text-end" style="{{ $ex_soon ? 'font-weight: 700; color: red;' : 'color: red;' }}">{{ $ex_date }}</td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+                                        
+                                        @foreach($not_ex_licenses as $li)
+                                            @if($stores_cnt > 1)
+                                                <tr>
+                                                    <td class="bd-bot px-1"><b>{{ $li->customer->name }}</b></td>
+                                                    <td class="bd-bot px-1"></td>
+                                                    <td class="bd-bot px-1"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="bd-bot px-1"></td>
+                                                    <td class="bd-bot px-1">{{ $li->type == 'Annual' || $li->type == 'Monthly' || $li->type == 'Every 3 years' ? $li->name : $li->type }}</td>
+                                                    <td class="bd-bot px-1 text-end">{{ $li->expire_date ? \Carbon\Carbon::parse($li->expire_date)->format('m/d/Y') : '' }}</td>
+                                                </tr>
+                                            @else
+                                                <tr>
+                                                    <td class="bd-bot px-1">{{ $li->type == 'Annual' || $li->type == 'Monthly' || $li->type == 'Every 3 years' ? $li->name : $li->type }}</td>
+                                                    <td class="bd-bot px-1 text-end">{{ $li->expire_date ? \Carbon\Carbon::parse($li->expire_date)->format('m/d/Y') : '' }}</td>
                                                 </tr>
                                             @endif
                                         @endforeach
@@ -314,6 +505,8 @@
                                 </table>
                                 <script>
                                     $(document).ready(function() {
+                                        @if($stores_cnt > 1)
+                                        
                                         let seen = {};
                                         
                                         $('#ex-li-table tbody tr').each(function() {
@@ -325,6 +518,8 @@
                                                 seen[firstColumnText] = true;
                                             }
                                         });
+                                        
+                                        @endif
                                     });
                                 </script>
                             @else
@@ -386,7 +581,7 @@
                         </div>
                       </div>
                     </div>
-                    <div class="col-6" style="padding: 2px 13px;">
+                    <div class="col-lg-6 col-md-12 col-12" style="padding: 2px 13px;">
                         <div class="card card-body">
                             <h5 class="fw-semibold d-block my-2 text-center">Monthly Customers</h5>
                             <div class="d-flex flex-row justify-content-between my-2">
@@ -399,7 +594,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6" style="padding: 2px 13px;">
+                    <div class="col-lg-6 col-md-12 col-12" style="padding: 2px 13px;">
                         <div class="card card-body">
                             <h5 class="fw-semibold d-block my-2 text-center">Annual Customers</h5>
                             <div class="d-flex flex-row justify-content-between my-2">
@@ -498,7 +693,8 @@
 
             </div>
 
-            <script src="../assets/vendor/libs/apex-charts/apexcharts.js"></script>
+            <!--<script src="../assets/vendor/libs/apex-charts/apexcharts.js"></script>-->
+            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
             @include('assets.chart-data')
     @endif
     

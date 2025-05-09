@@ -9,7 +9,7 @@ class Maintain_logs extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['invoice_id', 'cus_id', 'category', 'descript', 'des_problem', 'qty', 'rate', 'amount', 'date', 'location', 'tech_id'];
+    protected $fillable = ['invoice_id', 'cus_id', 'category', 'descript', 'des_problem', 'qty', 'rate', 'amount', 'date', 'location', 'tech_id', 'created_at', 'updated_at'];
 
     public function invoice()
     {

@@ -4,11 +4,16 @@
 }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+
 <div class="container pt-2 bg-white rounded">
     <div class="d-flex justify-content-between align-items-center mb-5">
         <h2>Invoices 
             @if($fac_id)
-                <b>»</b> {{ $fac_id }}
+                <b>»</b> {{ $fac_id }} 
+            @endif
+            @if(request('status'))
+                <b>»</b> {{ request('status') }} 
             @endif
         </h2>
 		@if(Auth::user()->role != 6)
@@ -16,12 +21,19 @@
 		@endif
 	</div>
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <select class="form-select storefilterSelect">
                 <option value="" {{ !isset($_GET['store']) ? 'selected' : '' }}>Filter by Store</option>
                 @foreach($all_stores as $str)
                     <option value="{{ $str->id }}" {{ isset($_GET['store']) && $_GET['store'] == $str->id ? 'selected' : '' }}>{{ $str->fac_id }} {{ $str->name ? '(' . $str->name . ')' : '' }}</option>
                 @endforeach
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select statusfilterSelect">
+                <option value="">Filter by Payment</option>
+                <option value="Paid" {{ request('status') == 'Paid' ? 'selected' : '' }}>Paid</option>
+                <option value="Unpaid" {{ request('status') == 'Unpaid' ? 'selected' : '' }}>Unpaid</option>
             </select>
         </div>
         <div class="col-md-2">
@@ -71,8 +83,12 @@
                 @foreach($invoices as $invoice)
                     <tr>
                         <td class="align-middle">
-                            @if(Auth::user()->role != 6)
-                                <a href="{{ route('invoice', ['edit' => $invoice->id]) }}">{{ $invoice->invoice_no }}</a>
+                            @if(Auth::user()->role < 6)
+                                @if($invoice->payment !== 'Paid')
+                                    <a href="{{ route('invoice', ['edit' => $invoice->id]) }}">{{ $invoice->invoice_no }}</a>
+                                @else
+                                    {{ $invoice->invoice_no }}
+                                @endif
                             @else
                                 {{ $invoice->invoice_no }}
                             @endif
@@ -97,25 +113,30 @@
                             </td>
                         @endif
                         <td class="align-middle">{{ $invoice->date ? \Carbon\Carbon::parse($invoice->date)->format('m/d/Y') : '' }}</td>
-                        <td class="align-middle">{{ $invoice->customer->name }}</td>
+                        <td class="align-middle">{{ $invoice->customer?->name }}</td>
                         <td class="align-middle">{{ $invoice->service }}</td>
-                        <td class="align-middle">{{ $invoice->pay_opt }}</td>
+                        <td class="align-middle">{{ $invoice->pay_opt == "MO" ? "Money Order" : $invoice->pay_opt }}</td>
                         <td class="align-middle">{{ $invoice->pay_opt == "Check" ? $invoice->check_no : ($invoice->pay_opt == "MO" ? $invoice->mo_no : ($invoice->pay_opt == "Cash" ? 'Cash': '')) }}</td>
                         <td class="align-middle text-end">
                             @php
                                 if(count($invoice->invoice_items) > 0){
                                     $amount = 0;
+                                    $insp_amount = 0;
                                     $inv_items = $invoice->invoice_items;
                                     
                                     foreach($inv_items as $item){
-                                        $amount += $item->amount;
+                                        if($item->category == 'Monthly Inspection' || $item->category == 'Calibration'){
+                                            $insp_amount += $item->amount;
+                                        } else {
+                                            $amount += $item->amount;
+                                        }
                                     }
                                     
                                     $sales_tax = $amount * config('app.sales_tax_percentage');
-                                    $total = $amount + $sales_tax;
+                                    $total = $amount + $insp_amount + $sales_tax;
                                     
                                     if($total > 0){
-                                        echo '$' . round($total, 2);
+                                        echo '$' . number_format(round($total, 2), 2);
                                     }
                                     
                                 }
@@ -127,13 +148,15 @@
                                         $paid_amount += (float)$paid[0];
                                     }
                                 }
+                                
+                                $invoice->payment = $invoice->payment ?? 'Unpaid';
                             @endphp
                             
                         </td>
                         <td class="align-middle text-center {{ $invoice->payment == 'Unpaid' ? 'text-danger' : 'text-success' }}" style="{{ $invoice->paid_amount && $paid_amount < $invoice->invoice_items->sum('amount') ? 'color: #ec6d2b !important;' : '' }}"><b>{{ $invoice->paid_amount && $paid_amount < $invoice->invoice_items->sum('amount') ? 'Partially Paid'  : $invoice->payment }}</b></td>
                         <td class="align-middle text-center">
                             @if($invoice->file_name)
-                                <button class="btn btn-primary p-0 px-1" onclick="window.open('{{ url('/invoices') }}/{{ $invoice->file_name }}')"><i class="fa fa-eye"></i></button>
+                                <button class="btn btn-primary p-0 px-1" onclick="openPdf('{{ url('/invoices') }}/{{ $invoice->file_name }}')"><i class="fa fa-eye"></i></button>
                                 <a class="btn btn-primary p-0 px-1" href="{{ url('/invoices') }}/{{ $invoice->file_name }}" target="_blank" download><i class="fa fa-download"></i></a>
                             @endif
                         </td>
@@ -146,6 +169,20 @@
     </div>
 </div>
 
+<div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfModalLabel">View PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="pdfCanvas" style="width: 100%; height: auto;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
     $(document).ready(function() {
@@ -154,11 +191,18 @@
             let params = new URLSearchParams(currentUrl.search);
     
             var store = $('.storefilterSelect').val();
+            var status = $('.statusfilterSelect').val();
     
             if(store){
                 params.set('store', store);
             } else {
                 params.delete('store');
+            }
+            
+            if(status){
+                params.set('status', status);
+            } else {
+                params.delete('status');
             }
     
             currentUrl.search = params.toString();
@@ -170,6 +214,7 @@
             let params = new URLSearchParams(currentUrl.search);
     
             params.delete('store');
+            params.delete('status');
     
             currentUrl.search = params.toString();
             window.location.href = currentUrl.toString();
@@ -187,4 +232,31 @@
             search: true
         });
     });
+    
+    function openPdf(url) {
+        const canvas = document.getElementById('pdfCanvas');
+        const context = canvas.getContext('2d');
+        
+        const randomString = Math.random().toString(36).substring(2, 5);
+        const uniqueUrl = url + '?v=' + randomString;
+        
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        $('#pdfModal').modal('show');
+    
+        pdfjsLib.getDocument(uniqueUrl).promise.then(function(pdf) {
+            pdf.getPage(1).then(function(page) {
+                const scale = 2;
+                const viewport = page.getViewport({ scale: scale });
+    
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+    
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        });
+    }
 </script>

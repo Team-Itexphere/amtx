@@ -8,6 +8,13 @@
                 <option value="" {{ !isset($_GET['type-filter']) ? 'selected' : '' }}>Filter by type</option>
                 <option value="release-detection-annual-testing" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'release-detection-annual-testing' ? 'selected' : '' }}>Release Detection Annual Testing</option>
                 <option value="atg-test" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'atg-test' ? 'selected' : '' }}>ATG Test</option>
+                <option value="cs-test" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'cs-test' ? 'selected' : '' }}>CS Test</option>
+                <option value="line-leak-test" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'line-leak-test' ? 'selected' : '' }}>Line Leak Test</option>
+                <option value="ls-test" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'ls-test' ? 'selected' : '' }}>Liquid Sensor Test</option>
+                <option value="overfill-test" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'overfill-test' ? 'selected' : '' }}>Overfill Test</option>
+                <option value="sb-test" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'sb-test' ? 'selected' : '' }}>Spill Bucket Test</option>
+                <option value="gcp-test" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'gcp-test' ? 'selected' : '' }}>GCP Test</option>
+                <option value="iccp-test" {{ isset($_GET['type-filter']) && $_GET['type-filter'] == 'iccp-test' ? 'selected' : '' }}>ICCP Test</option>
             </select>
         </div>
         <div class="col-md-2">
@@ -52,7 +59,7 @@
                         @if(!isset($_GET['type-filter']))
                             <td class="align-middle">{{ $testing->type }}</td>
                         @endif
-                        <td class="align-middle">{{ $testing->date }}</td>
+                        <td class="align-middle">{{ \Carbon\Carbon::parse($testing->date)->format('m/d/Y') }}</td>
                         <td class="align-middle">{{ $testing->customer->name }}</td>
                         <td class="align-middle text-center">
                             <button type="button" class="btn btn-primary p-0 px-1" onclick="window.location.href='{{ url('/') }}/{{ $testing->pdf_path }}'"><i class="fa fa-eye"></i></button>

@@ -60,7 +60,7 @@ class Fleet_routingsController extends Controller
         $role = auth()->user()->role;
         $user_id = auth()->user()->id;
         
-        if ( $role == 5 || $role == 1 || $role == 2 ) {
+        if ( $role == 4 || $role == 5 || $role == 1 || $role == 2 ) {
 
             if($role == 5){
                 $rel_wos_cnt = Work_orders::where('tech_id', $user_id)->where('fleet_id', $fleet_id)->count();
@@ -90,7 +90,7 @@ class Fleet_routingsController extends Controller
         
         $role = auth()->user()->role;
 
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
         
             $rules = [
                 'date' => 'required|max:60',
@@ -125,7 +125,7 @@ class Fleet_routingsController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
             $fleet_r_id = $request->input('fleet_r_id');
             $fleet_r = Fleet_routings::find($fleet_r_id);
     

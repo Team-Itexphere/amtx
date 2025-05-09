@@ -70,7 +70,7 @@ return [
     |
     */
 
-    'timezone' => 'America/North_Dakota/Center',
+    'timezone' => 'America/Chicago', // will be handled by AppServiceProvider
 
     /*
     |--------------------------------------------------------------------------

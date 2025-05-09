@@ -28,7 +28,7 @@ class FleetsController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role < 5 ) {
+        if ( $role < 3 ) {
             
             if (request()->has('add')) {
                 return view('dashboard');
@@ -72,7 +72,7 @@ class FleetsController extends Controller
             return redirect('/dashboard/employees?add')->with('error', 'Access denied');
         }*/
         
-        if ( $role < 5 ) {
+        if ( $role < 3 ) {
         
             $rules = [
                 'fleet_no' => 'required|max:60',
@@ -115,7 +115,7 @@ class FleetsController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role < 5 ) {
+        if ( $role < 3 ) {
             $fleet_id = $request->input('ft_id');
             $fleet = Fleets::find($fleet_id);
             
@@ -169,7 +169,7 @@ class FleetsController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 || $role == 1 || $role == 2 ) {
+        if ( $role == 4 || $role == 5 || $role == 1 || $role == 2 ) {
 
             return $id ? Fleets::find($id) : Fleets::all();
         }

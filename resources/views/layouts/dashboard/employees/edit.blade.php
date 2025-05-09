@@ -55,6 +55,13 @@
         margin-top: -1px;
         height: 26px;
     }
+    
+    .delete-ajax {
+        position: relative;
+        margin-bottom: -15px;
+        float: right;
+        right: -5px;
+    }
 </style>
 
 <div class="container mt-4">
@@ -126,7 +133,7 @@
         </div>
         <div class="row mb-3">
             <div class="col-md-6 log-f">
-                <label for="email" class="form-label"><span id="cus-lb">Store </span>Email <span class="text-danger">*</span></label>
+                <label for="email" class="form-label"><span class="cus-lb">Store</span> Email <span class="text-danger">*</span></label>
                 <input type="email" class="form-control" id="email" name="email" value="{{ $user->email }}" readonly required>
             </div>
             <div class="col-md-6 log-f">
@@ -157,6 +164,20 @@
             <div class="col-md-6">
                 <label for="str_addr" class="form-label">Store Address</label>
                 <input type="text" class="form-control" id="str_addr" name="str_addr" value="{{ $user->str_addr }}">
+            </div> 
+            <div class="col-md-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" id="city" name="city" value="{{ $user->city }}">
+            </div>
+            <div class="col-md-3">
+                <label for="state" class="form-label">State</label>
+                <input type="text" class="form-control" id="state" name="state" value="{{ $user->state }}">
+            </div>
+        </div>
+        <div class="row mb-3 customer-add" style="display:none;">
+            <div class="col-md-6">
+                <label for="zip_code" class="form-label">Zip Code</label>
+                <input type="text" class="form-control" id="zip_code" name="zip_code" value="{{ $user->zip_code }}">
             </div> 
             <div class="col-md-6">
                 <label for="str_phone" class="form-label">Contact Person Phone Number</label>
@@ -430,7 +451,7 @@
                                 </div>
                             </div>
                             <div class="col-md-1 text-end pt-2">
-                                <button type="button" class="btn-close close-item m-auto" aria-label="Close" disabled></button>
+                                <button type="button" class="btn-close close-item m-auto" aria-label="Close"></button>
                             </div>
                         </div>
                         @php
@@ -456,7 +477,16 @@
             </div>
         </div>
         
-        
+        <div class="row mb-3 px-3" id="work-for">
+            <div class="col-md-3" style="padding-left: 0 !important">
+                <label class="form-label" for="select-work-for">Work For</label>
+                <select class="form-select" id="select-work-for" name="work_for">
+                    <option value="AMTX" {{ $user->work_for == 'AMTX' ? 'selected' : '' }}>AMTX</option>
+                    <option value="PTS" {{ $user->work_for == 'PTS' ? 'selected' : '' }}>PTS</option>
+                    <option value="Both" {{ $user->work_for == 'Both' ? 'selected' : '' }}>Both</option>
+                </select> 
+            </div>
+        </div>
         <div class="row mb-3 px-3">
             <div class="form-check col-md-2">
                 <input class="form-check-input" type="checkbox" id="login" name="login" value="1" {{ $user->login ? 'checked' : '' }}>
@@ -508,6 +538,7 @@ $parent_id = $user->id;
                     <th>Site info</th>
                     <th>Compliance Documents</th>
                     <th>Maintenance Logs</th>
+                    <th>S.I.R./Inventory Control</th>
                     <th class="text-center">Action</th>
                 </tr>
             </thead>
@@ -532,9 +563,10 @@ $parent_id = $user->id;
                                 <a href="{{ route('comp-docs', ['id' => $user->id]) }}">View</a>
                             </td>
                             <td class="align-middle text-center">
-                                @if(count($user->maintain_logs) > 0)
-                                    <a href="{{ route('maintain-logs', ['id' => $user->id]) }}">View</a>
-                                @endif
+                                <a href="{{ route('maintain-logs', ['id' => $user->id]) }}">View</a>
+                            </td>
+                            <td class="align-middle text-center">
+                                <a href="{{ route('cus-sir-inv-docs', ['id' => $user->id]) }}">View</a>
                             </td>
                             <td class="align-middle text-center text-nowrap">
                                 @if(Auth::user()->role == 1)
@@ -813,6 +845,67 @@ $parent_id = $user->id;
 @endif
 
 
+@if(isset($_GET['parent']) && $user->role == 6)
+
+@php
+    $pictures = $user->pictures()->get()->groupBy('type');
+@endphp
+
+{{--@if($pictures->isNotEmpty())--}}
+    <div class="container mt-5 col-md-11 mx-auto">
+        <div class="mt-3 d-flex flex-wrap gap-4">
+            {{-- Loop through each type and create a card if the type exists --}}
+            @foreach (array_filter(['picture', 'atgs', 'atgi', $user->rec_logs ? 'rec_log' : null]) as $type)
+                {{--@if($pictures->has($type))--}}
+                    <div class="card mb-4" style="width: 13rem; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modal-{{ $type }}">
+                        @if($type == 'picture')
+                            <span class="text-center" style="font-size: 114px;">📷</span>
+                        @elseif($type == 'atgs')
+                            <span class="text-center" style="font-size: 114px;">📊</span>
+                        @elseif($type == 'atgi')
+                            <span class="text-center" style="font-size: 114px;">📦</span>
+                        @elseif($type == 'rec_log')
+                            <span class="text-center" style="font-size: 114px;">📝</span>
+                        @endif
+                        <div class="card-body text-center">
+                            <a href="#" class="btn btn-white" data-bs-toggle="modal" data-bs-target="#modal-{{ $type }}">
+                                {{ $type == 'picture' ? 'Pictures' : ($type == 'atgs' ? 'Sensor/CSLD Tickets' : ($type == 'atgi' ? 'Inventory Tickets' : 'Rectifier Log')) }}
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Modal for the type --}}
+                    <div class="modal fade" id="modal-{{ $type }}" tabindex="-1" aria-labelledby="modalLabel-{{ $type }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalLabel-{{ $type }}">{{ $type == 'picture' ? 'Pictures' : ($type == 'atgs' ? 'Sensor/CSLD Tickets' : 'Inventory Tickets') }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        @if($pictures->has($type))
+                                            @foreach ($pictures[$type] as $picture)
+                                                <div class="col-4 mb-3 item">
+                                                    <button class="delete-ajax btn btn-danger p-0 px-1" data-action="pic/{{ $picture->id }}"><i class="fa fa-trash-alt" title="Delete Image"></i></button>
+                                                    <img src="{{ url('') . $picture->image }}" alt="{{ $type }}" class="img-fluid rounded">
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {{--@endif--}}
+            @endforeach
+        </div>
+    </div>
+{{--@endif--}}
+
+@endif
+
+
 <script>
 
 $(document).ready(function() {
@@ -827,15 +920,18 @@ $(document).ready(function() {
     
     function role_by_type(){
         if($('#user-type').val() == 'cus'){
-            $('.emp-types').hide();
+            $('.emp-types, #work-for').hide();
             $('#role').val(6);
+            $('.cus-lb').text('Store');
         } else {
             var first_opt = $('#role option:nth-child(2)').val();
             $('#role').val(first_opt);
-            $('.emp-types').show();
+            $('.emp-types, #work-for').show();
+            $('.cus-lb').text('Employee');
         }
         role_changed();
     };
+    role_by_type();    
     $('#user-type').on('change', function(){
         role_by_type();
     });
@@ -859,16 +955,19 @@ $(document).ready(function() {
 
         if (roleVal < 4) {
             $('.customer-add *, #fleet-wrap *').prop('disabled', true);
-            $('.customer-add, #fleet-wrap, #cus-lb').hide();
+            $('.customer-add, #fleet-wrap').hide();
+            $('.cus-lb').text('Employee');
         } else if (roleVal == 4 || roleVal == 5) {
             $('.customer-add *').prop('disabled', true);
             $('#fleet-wrap *').prop('disabled', false);
-            $('.customer-add, #cus-lb, .cus-lb').hide();
+            $('.customer-add').hide();
+            $('.cus-lb').text('Employee');
             $('#fleet-wrap').show();
         } else {
             $('.customer-add *').prop('disabled', false);
             $('#fleet-wrap *').prop('disabled', true);
-            $('.customer-add, #fleet-wrap *, #cus-lb, .cus-lb').show();
+            $('.customer-add, #fleet-wrap').show();
+            $('.cus-lb').text('Store');
             $('#fleet-wrap').hide();
         }
     };
@@ -1023,7 +1122,7 @@ $(document).ready(function() {
                         </div>
                     </div>
                     <div class="col-md-1 text-end pt-2">
-                        <button type="button" class="btn-close close-item m-auto" aria-label="Close" disabled></button>
+                        <button type="button" class="btn-close close-item m-auto" aria-label="Close"></button>
                     </div>
                 </div>`);
 
@@ -1032,9 +1131,9 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.close-item', function() {
-        if($('body .close-item').length !== 1){
+        //if($('body .close-item').length !== 1){
             this.closest('.tank').remove();
-        }
+        //}
     });
     
     $(document).on('click', '.dis_sumps', function() {

@@ -5,6 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 
 use App\Models\Settings;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Config;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +25,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        if (mb_strpos(env('APP_URL'), 'https') === 0) {
+            URL::forceScheme('https');
+        }
+        
+        if (Request::is('api/*')) {
+            // Use UTC for API responses
+            Config::set('app.timezone', 'UTC');
+            date_default_timezone_set('UTC');
+        } else {
+            // Use America/Chicago for web
+            Config::set('app.timezone', 'America/Chicago');
+            date_default_timezone_set('America/Chicago');
+        }
+
         $settings = Settings::find(1);
 
         if ($settings) {

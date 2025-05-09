@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Ro_locations extends Model
 {
     use HasFactory;
+    
+    //public $timestamps = false;
 
     protected $fillable = ['route_id', 'cus_id', 'amount'];
 

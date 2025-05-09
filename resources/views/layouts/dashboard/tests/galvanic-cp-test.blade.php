@@ -49,18 +49,18 @@
           > Any significant variance should be reported to your corrosion professional so that any repairs and/or adjustments necessary can be made
         </td>
       </tr>
-      <tr>
+      <tr> 
         <td colspan="2" style="font-weight: 700; background: #d9d9d9; width: 48%"><center>UST OWNER</center></td>
         <td colspan="2" style="font-weight: 700; background: #d9d9d9; width: 52%"><center>UST FACILITY</center></td>
       </tr>
       <tr>
-        <td colspan="2"><b>NAME:</b></td>
-        <td style=""><b>NAME:</b></td>
-        <td style=""><b>FAC. ID #:</b></td>
+        <td colspan="2"><b>NAME:</b> {{ $testing->customer->own_name }}</td>
+        <td style=""><b>NAME:</b> {{ $testing->customer->name }}</td>
+        <td style=""><b>FAC. ID #:</b> {{ $testing->customer->fac_id }}</td>
       </tr>
       <tr>
-        <td colspan="2"><b>ADDRESS:</b></td>
-        <td colspan="2"><b>ADDRESS:</b></td>
+        <td colspan="2"><b>ADDRESS:</b> {{ $testing->customer->str_addr }}</td>
+        <td colspan="2"><b>ADDRESS:</b> {{ $testing->customer->str_addr }}</td>
       </tr>
       <tr>
         <td style="width: 30%;"><b>CITY:</b></td>
@@ -73,7 +73,7 @@
         <td colspan="2" style="font-weight: 700; background: #d9d9d9; width: 52%"><center>CP TESTER'S QUALIFICATIONS</center></td>
       </tr>
       <tr>
-        <td colspan="2"><b>NAME:</b></td>
+        <td colspan="2"><b>NAME: {{ $testing->technician->name }}</b></td>
         <td colspan="2"><b>STEEL TANK INSTITUTE ID#:</b></td>
       </tr>
       <tr>
@@ -93,23 +93,59 @@
         <td colspan="4" style="font-weight: 700; background: #d9d9d9; width: 48%"><center>REASON SURVEY WAS CONDUCTED (mark only one)</center></td>
       </tr>
       <tr>        
-        <td colspan="4" style="font-size: 9px;"><br>Date next cathodic protection survey must be conducted by:</td>
+        <td colspan="4" style="font-size: 9px; padding: 15px 0;">
+          <table class="no-bd">
+            <tr>
+              <td><div class="black-box {{ $testing->reason == '3yrs' ? 'filled' : '' }}"></div></td>
+              <td class="ps-3 pe-4">Routine - 3 year</td>
+              <td><div class="black-box {{ $testing->reason == '6mnths' ? 'filled' : '' }}"></div></td>
+              <td class="ps-3 pe-4">Routine - within 6 months of installatio</td>
+              <td><div class="black-box {{ $testing->reason == 'after-mod' ? 'filled' : '' }}"></div></td>
+              <td class="ps-3">Re-survey after repair/modification</td>
+            </tr>
+            <tr>
+              <td colspan="6">Date next cathodic protection survey must be conducted by: {{ \Carbon\Carbon::parse($testing->conducted_date)->format('m/d/Y') }}</td>
+            </tr>
+          </table>
+        </td>
       </tr>
       <tr>
         <td colspan="4" style="font-weight: 700; background: #d9d9d9; width: 48%"><center>CATHODIC PROTECTION TESTER'S EVALUATION (mark only one)</center></td>
       </tr>
       <tr>        
-        <td colspan="4" style="padding: 0;">
+        <td colspan="4" style="padding: 15px 0;">
           <table class="no-bd">
             <tr>
               <td class="align-top" style="width: 30px;">
-                <div class="black-box filled"></div>
+                <div class="black-box {{ $testing->evaluation == 'PASS' ? 'filled' : '' }}"></div>
               </td>
               <td class="align-top" style="width: 130px; text-align: center;">
                 <div>PASS</div>
               </td>
               <td>
                 <span>All protected structures at this facility "pass" the cathodic protection survey and it is judged that adequate cathodic protection has been provided to the UST system.</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-top" style="width: 30px;">
+                <div class="black-box {{ $testing->evaluation == 'FAIL' ? 'filled' : '' }}"></div>
+              </td>
+              <td class="align-top" style="width: 130px; text-align: center;">
+                <div>FAIL</div>
+              </td>
+              <td>
+                <span>One or more protected structures at this facility "fail" the cathodic protection survey and it is judged that adequate cathodic protection has not been provided to the UST system.</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-top" style="width: 30px;">
+                <div class="black-box {{ $testing->evaluation == 'INCONCLUSIVE' ? 'filled' : '' }}"></div>
+              </td>
+              <td class="align-top" style="width: 130px; text-align: center;">
+                <div>INCONCLUSIVE</div>
+              </td>
+              <td>
+                <span>The cathodic protection survey of an impressed current system must be evaluated by a "corrosion expert" because one or more of the conditions are applicable.</span>
               </td>
             </tr>
           </table>          
@@ -120,7 +156,7 @@
           <table class="no-bd" style="width: 100%;">
             <tr>
               <td colspan="2" class="align-top" style="width: 45%; font-size: 10px;"><b>CP TESTER'S SIGNATURE:</b></td>
-              <td colspan="2" class="align-top" style="width: 45%; font-size: 10px;"><b>DATE CP SURVEY PERFORMED:</b></td>
+              <td colspan="2" class="align-top" style="width: 45%; font-size: 10px;"><b>DATE CP SURVEY PERFORMED:</b> {{ \Carbon\Carbon::parse($testing->date)->format('m/d/Y') }}</td>
             </tr>
           </table>          
         </td>
@@ -129,15 +165,84 @@
         <td colspan="4" style="font-weight: 700; background: #d9d9d9; width: 48%"><center>CRITERIA APPLICABLE TO EVALUATION (mark all that apply)</center></td>
       </tr>      
       <tr>
-        <td colspan="4" style="color: transparent;">-</td>
+      <td colspan="4" style="padding: 15px 0;">
+          <table class="no-bd">
+            <tr>
+              <td class="align-top" style="width: 30px;">
+                <div class="black-box {{ $testing->criteria_appli == 1 ? 'filled' : '' }}"></div>
+              </td>
+              <td>
+                <span>Structure-to-soil potential more negative than -850 mV with respect to a Cu/CuSO₄ reference electrode with protective current applied (galvanic).</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-top" style="width: 30px;">
+                <div class="black-box {{ $testing->criteria_appli == 2 ? 'filled' : '' }}"></div>
+              </td>
+              <td>
+                <span>Structure-to-soil potential more negative than -850 mV with respect to a Cu/CuSO₄ reference electrode with protective current momentarily Interrupted ("instant-off").</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-top" style="width: 30px;">
+                <div class="black-box {{ $testing->criteria_appli == 3 ? 'filled' : '' }}"></div>
+              </td>
+              <td>
+                <span>Structure tested exhibits at least 100 mV of cathodic polarization ("100 mV polarization)</span>
+              </td>
+            </tr>
+          </table>          
+        </td>
       </tr>
       <tr>
         <td colspan="4" style="font-weight: 700; background: #d9d9d9; width: 48%"><center>ACTION REQUIRED AS A RESULT OF THIS EVALUATION (mark only one)</center></td>
       </tr>
       <tr>
-        <td colspan="4" style="color: transparent;">-</td>
+      <td colspan="4" style="padding: 0;">
+          <table class="no-bd">
+            <tr>
+              <td class="align-top" style="width: 30px;">
+                <div class="black-box {{ $testing->action_req == 'NONE' ? 'filled' : '' }}"></div>
+              </td>
+              <td class="align-top" style="width: 130px; text-align: center;">
+                <div>NONE</div>
+              </td>
+              <td>
+                <span>Cathodic protection has been judged adequate. No further action is necessary at this time</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-top" style="width: 30px;">
+                <div class="black-box {{ $testing->action_req == 'RETEST' ? 'filled' : '' }}"></div>
+              </td>
+              <td class="align-top" style="width: 130px; text-align: center;">
+                <div>RETEST</div>
+              </td>
+              <td>
+                <span>Cathodic protection has been judged inadequate. Retest during the next 90 days to determine if "passing" results can be achieved</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-top" style="width: 30px;">
+                <div class="black-box {{ $testing->action_req == 'REPAIR' ? 'filled' : '' }}"></div>
+              </td>
+              <td class="align-top" style="width: 130px; text-align: center;">
+                <div>REPAIR & RETEST</div>
+              </td>
+              <td>
+                <span>Cathodic protection has been judged inadequate. Repair/modification of the cathodic protection system is necessary</span>
+              </td>
+            </tr>
+          </table>          
+        </td>
       </tr>
     </table>
+
+    @php
+        $tank_des_items = json_decode($testing->tank_des_items, true);
+        $event_des_items = json_decode($testing->event_des_items, true);
+        $result_items = json_decode($testing->result_items, true);
+    @endphp 
 
     <table class="table" style="font-size: 11px; margin-top: -17px; line-height: 14px; text-align: center;">
         <tr>
@@ -150,20 +255,14 @@
           <td style="width: 18%;"><b>TANK MATERIAL</b></td>
           <td style="width: 36%;"><b>PIPING MATERIAL</b></td>
         </tr>
-        <tr style="color: transparent;">
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-        </tr>
-        <tr style="color: transparent;">
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-        </tr>
+        @foreach($tank_des_items as $item)
+          @php
+              $isEmpty = empty(array_filter($item, fn($value) => $value !== ''));
+          @endphp
+          <tr style="text-align: center;">
+            <td style="{{ $isEmpty ? 'color: transparent;' : '' }}">{{ $item[0] }}{{ $isEmpty ? '-' : '' }}</td> <td>{{ $item[1] }}</td> <td>{{ $item[2] }}</td> <td>{{ $item[3] }}</td> <td>{{ $item[4] }}</td>
+          </tr>
+        @endforeach
     </table>
 
     <table class="table" style="font-size: 11px; margin-top: -17px; line-height: 14px; text-align: center;">
@@ -181,26 +280,14 @@
           <td style="width: 9%"><b>VOLTS</b></td>
           <td style="width: 9%"><b>AMPS</b></td>
         </tr>
-        <tr style="color: transparent;">
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-        </tr>
-        <tr style="color: transparent;">
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-        </tr>
+        @foreach($event_des_items as $item)
+          @php
+              $isEmpty = empty(array_filter($item, fn($value) => $value !== ''));
+          @endphp
+          <tr style="text-align: center;">
+            <td style="{{ $isEmpty ? 'color: transparent;' : '' }}">{{ $item[0] }}{{ $isEmpty ? '-' : '' }}</td> <td>{{ $item[1] }}</td> <td>{{ $item[2] }}</td> <td>{{ $item[3] }}</td> <td>{{ $item[4] }}</td> <td>{{ $item[5] }}</td> <td>{{ $item[6] }}</td> <td>{{ $item[7] }}</td>
+          </tr>
+        @endforeach
     </table>
 
     <table class="table" style="font-size: 11px; margin-top: -17px; line-height: 14px; text-align: center;">
@@ -216,24 +303,14 @@
           <td style="width: 20%;"><b>100 mV POLARIZATION</b></td>
           <td><b>PASS/FAIL</b></td>
         </tr>
-        <tr style="color: transparent;">
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-        </tr>
-        <tr style="color: transparent;">
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-        </tr>
+        @foreach($result_items as $item)
+          @php
+              $isEmpty = empty(array_filter($item, fn($value) => $value !== ''));
+          @endphp
+          <tr style="text-align: center;">
+            <td style="{{ $isEmpty ? 'color: transparent;' : '' }}">{{ $item[0] }}{{ $isEmpty ? '-' : '' }}</td> <td>{{ $item[1] }}</td> <td>{{ $item[2] }}</td> <td>{{ $item[3] }}</td> <td>{{ $item[4] }}</td> <td>{{ $item[5] }}</td> <td>{{ $item[6] }}</td>
+          </tr>
+        @endforeach
     </table>
 
     <table class="table" style="font-size: 11px; line-height: 14px;">

@@ -64,7 +64,7 @@
                             <i class="fa fa-phone-alt fa-2x text-primary"></i>
                         </div>
                         <h4 class="mb-3">Phone Number</h4>
-                        <p class="mb-5">+281 242 2687</p>
+                        <p class="mb-5">(281) 242-2687</p>
                         <a class="btn btn-primary px-4" href="tel:2812422687">Call Now <i
                                 class="fa fa-arrow-right ms-2"></i></a>
                     </div>
@@ -113,7 +113,7 @@
                                 </div>
                                 <div class="ms-3">
                                     <h6>Call Us</h6>
-                                    <span>+281 242 2687</span>
+                                    <span>(281) 242-2687</span>
                                 </div>
                             </div>
                         </div>

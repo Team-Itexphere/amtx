@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 use App\Models\User;
 use App\Models\Stores;
@@ -31,6 +32,7 @@ class EmployeesController extends Controller
         $store = request('store', '');
         $s = request('s', '');
         $fltRole = request('role', '');
+        $fltCompany = request('company', '');
         $dateRange  = request('d_range', '');
         
         $role = auth()->user()->role;
@@ -47,12 +49,21 @@ class EmployeesController extends Controller
         }
 
         if (Route::is('my-profile')) {
-            if($role > 4){
+            if($role == 5){
                 return abort(404);
             }
             
             $user = auth()->user();
             return view('dashboard', compact('user', 'stores'));
+        }
+        
+        if (Route::is('my-pictures')) {
+            if($role != 6){
+                return abort(404);
+            }
+            
+            $user = auth()->user();
+            return view('dashboard', compact('user'));
         }
         
         if ( $role < 5 ) {
@@ -106,7 +117,12 @@ class EmployeesController extends Controller
             if(request()->has('parent')){
                 $parent = User::find(request()->input('parent'));
                 $users[] = $parent;
+            } elseif (request()->has('company')){
+                $users = $users->filter(function ($user) use ($fltCompany) {
+                    return $user->com_to_inv === $fltCompany;
+                });
             }
+            
             $users = $users->sortBy('name');
 
             $users = paginateCollection($users, $perPage, $page);
@@ -177,9 +193,17 @@ class EmployeesController extends Controller
                     $rules['fac_id'] = 'string|max:60|unique:users';
                 }
                 
-                if($request->input('email')){
-                    if(User::where('email', $request->input('email'))->first()){
-                        return redirect()->back()->with('error', 'Email is already exist!');
+                if ($request->input('email')) {
+                    $exist_user = User::where('email', $request->input('email'))->first();
+                    
+                    if ($exist_user) {
+                        if ($exist_user->deleted) {
+                            $exist_user->deleted = null;
+                            $exist_user->save();
+                            return $this->edit($request, $exist_user->id);
+                        } else {
+                            return redirect()->back()->with('error', 'Email is already exist!');
+                        }
                     }
                 }
                 
@@ -204,6 +228,9 @@ class EmployeesController extends Controller
                     'com_name' => $request->input('com_name'),
                     'own_name' => $request->input('own_name'),
                     'str_addr' => $request->input('str_addr'),
+                    'city' => $request->input('city'),
+                    'state' => $request->input('state'),
+                    'zip_code' => $request->input('zip_code'),
                     'str_phone' => $request->input('str_phone'),
                     'cp_name' => $request->input('cp_name'),
                     'cp_phone' => $request->input('cp_phone'),
@@ -213,6 +240,7 @@ class EmployeesController extends Controller
                     'com_to_inv' => $request->input('com_to_inv'),
                     'cus_type' => $request->input('role') == 6 ? $request->input('cus_type') : null,
                     'login' => $request->input('login') ?? 0,
+                    'work_for' => $request->input('work_for') ?? 'Both',
                     'rec_logs' => $request->input('rec_logs') ?? 0,
                 ];
                 
@@ -311,7 +339,7 @@ class EmployeesController extends Controller
     }
 
     //for user edit
-    public function edit(Request $request)
+    public function edit(Request $request, $exist_uID = null)
     {
         if (!auth()->user()) {
             return redirect('login');
@@ -322,7 +350,7 @@ class EmployeesController extends Controller
         if ( $role < 5 ) {
             try {
                 
-                $user_id = $request->input('u_id');
+                $user_id = $exist_uID ?? $request->input('u_id');
                 $user = User::find($user_id);
                 
                 if ($role > $request->input('role') || $role > 3) {
@@ -334,7 +362,7 @@ class EmployeesController extends Controller
                 ];
                 $rules['fac_id'] = $request->input('fac_id') && $user->fac_id != $request->input('fac_id') ? 'string|max:60|unique:users' : '';
                 
-                if($request->input('email')){
+                if(!$exist_uID && $request->input('email')){
                     $curr_urs = User::where('email', $request->input('email'))->first();
                     if($curr_urs && $curr_urs->id != $user_id){
                         return redirect()->back()->with('error', 'Email is already exist!');
@@ -361,6 +389,9 @@ class EmployeesController extends Controller
                 $user->com_name     = $request->input('com_name');
                 $user->own_name     = $request->input('own_name');
                 $user->str_addr     = $request->input('str_addr');
+                $user->city         = $request->input('city');
+                $user->state        = $request->input('state');
+                $user->zip_code     = $request->input('zip_code');
                 $user->str_phone    = $request->input('str_phone');
                 $user->cp_name      = $request->input('cp_name');
                 $user->cp_phone     = $request->input('cp_phone');
@@ -370,6 +401,7 @@ class EmployeesController extends Controller
                 $user->com_to_inv   = $request->input('com_to_inv');
                 $user->cus_type     = $request->input('role') == 6 ? $request->input('cus_type') : null;
                 $user->login        = $request->input('login') ?? 0;
+                $user->work_for        = $request->input('work_for') ?? 'Both';
                 $user->rec_logs     = $request->input('rec_logs') ?? 0;
     
                 if ( $role == 2 && $request->input('role') == 1 ) {
@@ -468,7 +500,7 @@ class EmployeesController extends Controller
         $user = auth()->user();
         $role = auth()->user()->role;
         
-        if($role > 4){
+        if($role == 5){
             return abort(404);
         }
 
@@ -498,17 +530,20 @@ class EmployeesController extends Controller
             $user->password = Hash::make($request->input('password'));
         }
     
-        $user->fleet_id = $request->input('fleet');
+        /*$user->fleet_id = $request->input('fleet');
         $user->com_name = $request->input('com_name');
         $user->own_name = $request->input('own_name');
         $user->str_addr = $request->input('str_addr');
+        $user->city = $request->input('city');
+        $user->state = $request->input('state');
+        $user->zip_code = $request->input('zip_code');
         $user->str_phone = $request->input('str_phone');
         $user->cp_name = $request->input('cp_name');
         $user->cp_phone = $request->input('cp_phone');
         $user->own_email = $request->input('own_email');
         $user->email_list = $request->input('email_list');
         $user->fac_id = $request->input('fac_id');
-        $user->com_to_inv = $request->input('com_to_inv');
+        $user->com_to_inv = $request->input('com_to_inv');*/
 
         if ( $role > $request->input('role') ) {
             $user->role = $role;
@@ -597,11 +632,11 @@ class EmployeesController extends Controller
             return redirect('login');
         }
 
-        if (auth()->user()->role > 3) {
+        /*if (auth()->user()->role > 3 && auth()->user()->role !== 6) {
             return abort(404);
-        }
+        }*/
         
-        $cus_id = $request->input('customer_id');
+        $cus_id = auth()->user()->role == 6 ? auth()->user()->id : $request->input('customer_id') ?? request()->input('customer_id');
         $note = $request->input('note');
             
         if(!$cus_id || !$note){
@@ -614,7 +649,12 @@ class EmployeesController extends Controller
             'status' => 'Pending'
         ];
     
-        $ro_loc_note = Cus_notes::create($new_cus_note_data);
+        $note = Cus_notes::create($new_cus_note_data);
+        
+        if(request()->is('api/customer/notes*')){
+            return Cus_notes::where('cus_id', $note->cus_id)->latest()->get();
+        }
+        
         return redirect()->back()->with('success', 'Note added successfully!');
     }
     
@@ -632,13 +672,20 @@ class EmployeesController extends Controller
         $note_id = $request->input('note_id');
         //$cus_id = $request->input('cus_id');
         $note_text = $request->input('note');
+        $reason = $request->input('reason') ?? null;
             
         if(!$note_text){
             return redirect()->back()->with('error', 'Required fields not found');
         }
         
         $note = Cus_notes::find($note_id);
-        $note->note = $note_text;
+        
+        if (auth()->user()->role == 6 && auth()->user()->id !== $note->cus_id) {
+            return abort(404);
+        }
+        
+        $note->note = auth()->user()->role == 1 ? $note_text : $note->note;
+        $note->reason = $reason;
         
         if($request->input('com_check') && $request->input('com_check') == 1){
             $note->status = 'Completed';
@@ -651,21 +698,33 @@ class EmployeesController extends Controller
         return redirect()->back()->with('success', 'Note edited successfully!');
     }
 
-    // get customer notes for web - ajax
+    // get customer notes for web
     function view_cus_notes(Request $request)
     {
         $perPage = request('per_page', 10);
         $page = request('page', 1);
+        $status = request('status', '');
         
         if (!auth()->user()) {
             return redirect('login');
         }
 
-        if (auth()->user()->role > 5) {
-            return abort(404);
+        if (auth()->user()->role == 6) {
+            $notesQuery = auth()->user()->cus_notes()->orderBy('created_at', 'desc');
+        } else {
+            $notesQuery = Cus_notes::orderBy('created_at', 'desc');
         }
-            
-        $notes = Cus_notes::orderBy('created_at', 'desc')->get();
+        
+        if ($status) {
+            if ($status === 'Pending') {
+                $notesQuery->where('status', 'Pending')->orWhereNull('status');
+            } else {
+                $notesQuery->where('status', $status);
+            };
+        }
+        
+        $notes = $notesQuery->get();
+        
         if($notes){
             foreach($notes as $note){
                 $note['date'] = $note->updated_at->format('m/d/Y');
@@ -681,8 +740,9 @@ class EmployeesController extends Controller
 
 
 
-// For API (sanctum - old method)
-
+    // For API 
+    
+    // login (sanctum - old method)
     /*public function login(Request $request)
     {
 
@@ -700,7 +760,114 @@ class EmployeesController extends Controller
 
         return response()->json(['message' => 'Invalid credentials'], 401);
     }*/
+    
+    // customer search
+    function get_customers(Request $request)
+    {
+        if (!auth()->user()) {
+            return redirect('login');
+        }
 
+        if (auth()->user()->role >= 6) {
+            return abort(404);
+        }
+        
+        $param = $request->input('s');
+        $com_to_inv = auth()->user()->work_for == 'AMTX' ? 'AMTS' : (auth()->user()->work_for == 'PTS' ? 'Petro-Tank Solutions' : null);
+
+        if(!$param){
+            //return redirect()->back()->with('error', 'Required fields not found');
+            if($com_to_inv){
+                return User::where('role', 6)->whereNull('deleted')->where('com_to_inv', $com_to_inv)->orderBy('name')->get();
+            } else {
+                return User::where('role', 6)->whereNull('deleted')->orderBy('name')->get();
+            }
+        }
+        
+        if($com_to_inv){
+            return User::query()
+            ->whereNull('deleted')
+            ->where(function ($query) use ($com_to_inv) {
+                $query->where('com_to_inv', $com_to_inv);
+            })
+            ->where(function ($query) use ($param) {
+                $query->where('fac_id', 'like', "%{$param}%")
+                      ->orWhere('name', 'like', "%{$param}%")
+                      ->orWhere('str_addr', 'like', "%{$param}%")
+                      ->orWhere('city', 'like', "%{$param}%")
+                      ->orWhere('state', 'like', "%{$param}%")
+                      ->orWhere('zip_code', 'like', "%{$param}%");
+            })
+            ->with(['cus_notes' => function ($query) {
+                $query->latest();
+            }])->orderBy('name')->get()
+            ->map(function ($user) {
+                $todayRoute = $user->ro_locations()
+                                ->whereHas('route.route_lists', function ($query) {
+                                    $query->whereDate('start_date', Carbon::today());
+                                })
+                                ->exists();
+                
+                $hasPendingTest = $todayRoute && $user->testings()->whereDate('updated_at', Carbon::today())->where('status', 'pending')->exists();
+                $user->allowInv = !$hasPendingTest;
+                return $user;
+            });
+        } else {
+            return User::query()
+            ->whereNull('deleted')
+            ->where('fac_id', 'like', "%{$param}%")
+            ->orWhere('name', 'like', "%{$param}%")
+            ->orWhere('str_addr', 'like', "%{$param}%")
+            ->orWhere('city', 'like', "%{$param}%")
+            ->orWhere('state', 'like', "%{$param}%")
+            ->orWhere('zip_code', 'like', "%{$param}%")
+            ->with(['cus_notes' => function ($query) {
+                $query->latest();
+            }])->orderBy('name')->get()
+            ->map(function ($user) {
+                $todayRoute = $user->ro_location && $user->ro_location->route->route_lists()
+                                ->whereDate('start_date', Carbon::today())
+                                ->exists();
+                
+                $hasPendingTest = $todayRoute && $user->testings()->whereDate('updated_at', Carbon::today())->where('status', 'pending')->exists();
+                $user->allowInv = !$hasPendingTest;
+                return $user;
+            });
+        }
+        
+            /*->with(['cus_notes' => function ($query) {
+                $query->where('status', '!=', 'Completed')
+                      ->orWhereNull('status');
+            }])->get();*/
+    }
+    
+    // edit customer notes
+    function update_cus_note(Request $request)
+    {
+        if (!auth()->user()) {
+            return redirect('login');
+        }
+
+        if (auth()->user()->role > 5) {
+            return abort(404);
+        }
+        
+        $note_id = request()->input('id');
+
+        $note = $note_id ? Cus_notes::find($note_id) : null;
+        
+        if($note){
+            $note->status = $request->input('status');
+            $note->reason = $request->input('reason') ?? null;
+            $note->save();
+        } //else {
+            //$new_note = $request->input('note'); no else part for now
+        //}
+    
+        return Cus_notes::where('cus_id', $note->cus_id)->latest()->get();
+    }
+    
+    // logout
     public function logout()
     {
         $user = Auth::user();

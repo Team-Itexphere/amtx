@@ -11,6 +11,9 @@
     </div>
 @endif
 
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+
 <style>
     #add-btn-cont {
         width: 50%;
@@ -29,6 +32,18 @@
 
     .loc-item {
         box-shadow: 0 2px 5px #0000001f;
+    }
+    
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #ced4da !important;
+        height: 38px;
+    }
+    .select2-selection__rendered {
+        padding-top: 3px;
+        height: 38px;
+    }
+    .select2-selection__arrow {
+        height: 36px !important;
     }
 </style>
 
@@ -59,13 +74,12 @@
             </div>
         </div>
 
-        
         <div class="mt-4 mb-3 pt-2 pb-0 px-4 rounded" style="border: 2px solid #53884047;">
             <h4 class="text-center mb-3">Locations</h4>
             <div id="item-cont">
                 <div class="row mb-2 p-2 rounded-1 border border-light-subtle loc-item">
                     <div class="col-md-6">
-                        <select class="form-select cus_id" required>
+                        <select class="form-select cus_id select2" required>
                             <option value="">- Select Customer -</option>
                             @foreach($customers_all as $customer)
                                 <option value="{{ $customer->id }}">{{ $customer->name }} ({{ $customer->fac_id }})</option>
@@ -96,7 +110,8 @@
 
 
 <script>
-
+    $('.select2').select2();
+    
     function update_cus_id_options() {
         var selectedValues = [];
         $('.cus_id').each(function() {
@@ -127,7 +142,7 @@
     $('#add_item').on('click', function() {
         var new_item = $(`<div class="row mb-2 p-2 rounded-1 border border-light-subtle loc-item">
                     <div class="col-md-6">
-                        <select class="form-select cus_id" required>
+                        <select class="form-select cus_id select2" required>
                             <option value="">- Select Customer -</option>
                             @foreach($customers_all as $customer)
                                 <option value="{{ $customer->id }}">{{ $customer->name }} ({{ $customer->fac_id }})</option>
@@ -147,6 +162,7 @@
         update_cus_id_options();
 
         $('.loc-item .close-item').prop('disabled', false);
+        $('.select2').select2();
     });
 
     $(document).on('click', '.close-item', function() {

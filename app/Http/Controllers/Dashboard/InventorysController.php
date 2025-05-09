@@ -29,7 +29,7 @@ class InventorysController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role < 4 ) {
+        if ( $role < 3 ) {
             $fleets = Fleets::all();
             
             if (request()->has('add')) {
@@ -75,7 +75,7 @@ class InventorysController extends Controller
             return redirect('/dashboard/employees?add')->with('error', 'Access denied');
         }*/
         
-        if ( $role < 4 ) {
+        if ( $role < 3 ) {
         
             $rules = [
                 'part_no' => 'required|max:30',
@@ -120,7 +120,7 @@ class InventorysController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role < 5 ) {
+        if ( $role < 3 ) {
             $inventory_id = $request->input('in_id');
             $inventory = Inventorys::find($inventory_id);
     

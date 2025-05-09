@@ -33,13 +33,17 @@ Route::middleware('auth:api')->get('/fleet-routing/{fleet_id}', [App\Http\Contro
 Route::middleware('auth:api')->get('/fleet-routing/add/{fleet_id}', [App\Http\Controllers\Dashboard\Fleet_routingsController::class, 'add']);
 Route::middleware('auth:api')->get('/fleet-routing/edit/{fleet_r_id}', [App\Http\Controllers\Dashboard\Fleet_routingsController::class, 'edit']);
 
-Route::middleware('auth:api')->post('/invoice', [App\Http\Controllers\Dashboard\InvoicesController::class, 'createInvoice']);
+Route::middleware('auth:api')->post('/invoice', [App\Http\Controllers\Dashboard\InvoicesController::class, 'editInvoice']);
+Route::middleware('auth:api')->get('/invoice', [App\Http\Controllers\Dashboard\InvoicesController::class, 'inv_list']);
 
 Route::middleware('auth:api')->get('/license/{cus_id}', [App\Http\Controllers\Dashboard\Cus_licensesController::class, 'li_list']);
 Route::middleware('auth:api')->get('/site-info/{cus_id}', [App\Http\Controllers\Dashboard\Site_infosController::class, 'si_list']);
+Route::middleware('auth:api')->get('/customers', [App\Http\Controllers\Dashboard\EmployeesController::class, 'get_customers']);
 Route::middleware('auth:api')->post('customer/notes', [App\Http\Controllers\Dashboard\EmployeesController::class, 'add_cus_note']);
+Route::middleware('auth:api')->post('customer/notes/update', [App\Http\Controllers\Dashboard\EmployeesController::class, 'update_cus_note']);
 
 Route::middleware('auth:api')->get('/testing', [App\Http\Controllers\Dashboard\TestingsController::class, 'ques_list']);
+Route::middleware('auth:api')->get('/store-testings', [App\Http\Controllers\Dashboard\TestingsController::class, 'store_testings']);
 Route::middleware('auth:api')->get('/tests', [App\Http\Controllers\Dashboard\TestingsController::class, 'tests_list']);
 Route::middleware('auth:api')->post('/testing/create', [App\Http\Controllers\Dashboard\TestingsController::class, 'create']);
 Route::middleware('auth:api')->post('/testing/fill', [App\Http\Controllers\Dashboard\TestingsController::class, 'fill']);
@@ -59,3 +63,4 @@ Route::middleware('auth:api')->get('/service-calls/history', [App\Http\Controlle
 
 Route::middleware('auth:api')->post('/img-upload', [App\Http\Controllers\Dashboard\PicturesController::class, 'upload']);
 Route::middleware('auth:api')->get('/img-upload', [App\Http\Controllers\Dashboard\PicturesController::class, 'list']);
+Route::middleware('auth:api')->get('/img-delete/{id}', [App\Http\Controllers\Dashboard\PicturesController::class, 'delete']);

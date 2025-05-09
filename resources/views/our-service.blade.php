@@ -71,7 +71,7 @@
                         <div class="service-detail">
                             <div class="service-title">
                                 <hr class="w-25">
-                                <h3 class="mb-0">Monthly Compliance Program</h3>
+                                <h3 class="mb-0">Monthly TCEQ Compliance Program</h3>
                                 <hr class="w-25">
                             </div>
                             <div class="service-text">
@@ -90,7 +90,7 @@
                         <div class="service-detail">
                             <div class="service-title">
                                 <hr class="w-25">
-                                <h3 class="mb-0">Annual Line Testing</h3>
+                                <h3 class="mb-0">Annual Testing</h3>
                                 <hr class="w-25">
                             </div>
                             <div class="service-text">

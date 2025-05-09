@@ -52,9 +52,9 @@ class Maintain_logsController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
 
-            $maintain_logs = Maintain_logs::where('cus_id', request()->input('cus_id'))->get();
+            $maintain_logs = Maintain_logs::where('cus_id', request()->input('cus_id'))->orderBy('id', 'desc')->get();
             
             foreach($maintain_logs as $log){
                 $log['tech_name'] = $log->tech_id ? $log->technician->name : '';

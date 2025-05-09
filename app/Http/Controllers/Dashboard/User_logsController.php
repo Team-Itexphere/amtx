@@ -24,7 +24,7 @@ class User_logsController extends Controller
         
         if ( $role == 1 ) {
             
-            $user_logs = User_logs::all();
+            $user_logs = User_logs::orderBy('created_at', 'desc')->get();
             
             $user_logs = paginateCollection($user_logs, $perPage, $page);
 

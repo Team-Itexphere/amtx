@@ -65,6 +65,15 @@
             </select>
         </div>
         @endif
+        @if(!Auth::user()->role < 6 && !isset($_GET['parent']))
+        <div class="col-md-2">
+            <select class="form-select companyfilterSelect">
+                <option value="" {{ !isset($_GET['company']) ? 'selected' : '' }}>Filter by Company</option>
+                <option value="AMTS" {{ isset($_GET['company']) && $_GET['company'] == 'AMTS' ? 'selected' : '' }}>AMTS</option>
+                <option value="Petro-Tank Solutions" {{ isset($_GET['company']) && $_GET['company'] == 'Petro-Tank Solutions' ? 'selected' : '' }}>PTS</option>
+            </select>
+        </div>
+        @endif
         <div class="col-md-2">
             <button class="btn btn-primary filterButton">Filter</button>
             <button class="btn btn-primary filter-reset">Reset</button>
@@ -112,8 +121,11 @@
                         <th>Licenses</th>
                         <th>Compliance Documents</th>
                         <th>Maintenance Logs</th>
+                        <th>S.I.R./Inventory Control</th>
                     @endif
-                    <th class="text-center">Action</th>
+                    @if(Auth::user()->role !== 6)
+                        <th class="text-center">Action</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -166,22 +178,29 @@
                                         <a href="{{ route('maintain-logs', ['id' => $user->id]) }}">View</a>
                                     @endif
                                 </td>
+                                <td class="align-middle text-center">
+                                    <a href="{{ route('cus-sir-inv-docs', ['id' => $user->id]) }}">View</a>
+                                </td>
                             @endif  
-                            <td class="align-middle text-center text-nowrap">
-                                @if(!isset($_GET['inactive_cus']))
-                                    @if(Auth::user()->role == 1)
-                                        <button class="delete-item btn btn-danger p-0 px-1" data-action="user/{{ $user->id }}"><i class="fa fa-trash-alt" title="Delete user"></i></button>
-                                        @if($user->role == 6)
-                                            <button class="btn btn-secondary p-0 px-1" onclick="window.location.href='{{ route('switch_to') }}/{{ $user->id }}'" title="Switch as {{ $user->name }}"><i class="fa fa-sign-in"></i></button>
-                                            @if(!$user->parent_id && !$parent)
-                                                <button class="btn btn-primary p-0 px-1" onclick="window.location.href='{{ route('employees', ['list', 'cus', 'parent' => $user->id]) }}'" title="Add a store"><i class="fa fa-institution"></i></button>
+                            @if(Auth::user()->role !== 6)
+                                <td class="align-middle text-center text-nowrap">
+                                    @if(!isset($_GET['inactive_cus']))
+                                        @if(Auth::user()->role == 1)
+                                            <button class="delete-item btn btn-danger p-0 px-1" data-action="user/{{ $user->id }}"><i class="fa fa-trash-alt" title="Delete user"></i></button>
+                                            @if($user->role == 6)
+                                                <button class="btn btn-secondary p-0 px-1" onclick="window.location.href='{{ route('switch_to') }}/{{ $user->id }}'" title="Switch as {{ $user->name }}"><i class="fa fa-sign-in"></i></button>
+                                                @if(!$user->parent_id && !$parent)
+                                                    <button class="btn btn-primary p-0 px-1" onclick="window.location.href='{{ route('employees', ['list', 'cus', 'parent' => $user->id]) }}'" title="Add a store"><i class="fa fa-institution"></i></button>
+                                                @endif
+                                            @elseif($user->role < 7)
+                                                <button class="btn btn-primary p-0 px-1" onclick="window.location.href='{{ route('employees', ['edit' => $user->id]) }}'" title="Edit" style="margin-right: -31px;"><i class="fa fa-edit"></i></button>
                                             @endif
                                         @endif
+                                    @else
+                                        <button class="restore-item btn btn-danger p-0 px-1" data-action="user/{{ $user->id }}"><i class="fa fa-undo" title="Restore user"></i></button>
                                     @endif
-                                @else
-                                    <button class="restore-item btn btn-danger p-0 px-1" data-action="user/{{ $user->id }}"><i class="fa fa-undo" title="Restore user"></i></button>
-                                @endif
-                            </td>
+                                </td>
+                            @endif
                         </tr>
                     @endif
                 @endforeach
@@ -497,6 +516,7 @@
     
             var s = $('.searchInput').val();
             var role = $('.rolefilterSelect').val();
+            var company = $('.companyfilterSelect').length > 0 ? $('.companyfilterSelect').val() : '';
     
             if(s != ''){
                 params.set('s', s);
@@ -508,6 +528,12 @@
                 params.set('role', role);
             } else {
                 params.delete('role');
+            }
+            
+            if(company){
+                params.set('company', company);
+            } else {
+                params.delete('company');
             }
             
             params.delete('page');
@@ -522,6 +548,7 @@
     
             params.delete('s');
             params.delete('role');
+            params.delete('company');
             params.delete('page');
             
             currentUrl.search = params.toString();

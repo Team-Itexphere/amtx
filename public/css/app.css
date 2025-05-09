@@ -28,8 +28,8 @@ nav.navbar {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 250px;
-    /*background-image: linear-gradient(0deg, #004d8f, #00b7ff);*/
+    /*width: 250px;
+    background-image: linear-gradient(0deg, #004d8f, #00b7ff);*/
     background-image: linear-gradient(0deg, #325327, #538840);
     padding-top: 20px;
     z-index: 9;
@@ -131,7 +131,7 @@ nav.navbar {
 
 #nav-offcanvas .dropdown-menu {
     transform: unset  !important;
-    width: 100%  !important;
+    width: 80%  !important;
     position: relative  !important;
 }
 
@@ -151,6 +151,14 @@ nav.navbar {
 
     #mob-head {
         display: flex;
+    }
+    
+    .sb .submenu { 
+    	left: unset;
+    }
+    
+    .sb .dropdown-menu { 
+    	background: transparent;
     }
 }
 

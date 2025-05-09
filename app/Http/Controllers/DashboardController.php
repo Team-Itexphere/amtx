@@ -46,18 +46,37 @@ class DashboardController extends Controller
                 $auth_id = auth()->user()->id;
 
                 $currentYear = now()->year;
+                $currentMonth = now()->month;
                 $lastYear = now()->subYear()->year;
-                $monthFCounts = []; 
-                $monthPCounts = [];
+                $monthFCounts_amts = []; 
+                $monthPCounts_amts = [];
+                $monthFCounts_pts = []; 
+                $monthPCounts_pts = [];
                 for ($month = 1; $month <= 12; $month++) {
-                    $Fcount = Testings::when($auth_role > 4, function ($query) use ($auth_id) { return $query->where('tech_id', $auth_id)->orWhere('cus_id', $auth_id); })->whereYear('created_at', $currentYear)->whereMonth('created_at', $month)->where('status', 'completed')->count();                    
-                    $monthFCounts[$month] = $Fcount > 0 ? $Fcount : 0;
+                    $F_amts_count = Testings::when($auth_role > 5, function ($query) use ($auth_id) { return $query->where('tech_id', $auth_id)->orWhere('cus_id', $auth_id); })->whereYear('created_at', $currentYear)->whereMonth('created_at', $month)->where('status', 'completed')->whereHas('customer', function ($query) {
+                        $query->where('com_to_inv', 'AMTS');
+                    })->count();                    
+                    $monthFCounts_amts[$month] = $F_amts_count > 0 ? $F_amts_count : 0;
 
-                    $Pcount = Testings::when($auth_role > 4, function ($query) use ($auth_id) { return $query->where('tech_id', $auth_id)->orWhere('cus_id', $auth_id); })->whereYear('created_at', $currentYear)->whereMonth('created_at', $month)->where('status', 'pending')->count();                    
-                    $monthPCounts[$month] = $Pcount > 0 ? -1 * $Pcount : 0;
+                    $P_amts_count = Testings::when($auth_role > 5, function ($query) use ($auth_id) { return $query->where('tech_id', $auth_id)->orWhere('cus_id', $auth_id); })->whereYear('created_at', $currentYear)->whereMonth('created_at', $month)->where('status', 'pending')->whereHas('customer', function ($query) {
+                        $query->where('com_to_inv', 'AMTS');
+                    })->count();                    
+                    $monthPCounts_amts[$month] = $P_amts_count > 0 ? $P_amts_count : 0;
+                    
+                    $F_pts_count = Testings::when($auth_role > 5, function ($query) use ($auth_id) { return $query->where('tech_id', $auth_id)->orWhere('cus_id', $auth_id); })->whereYear('created_at', $currentYear)->whereMonth('created_at', $month)->where('status', 'completed')->whereHas('customer', function ($query) {
+                        $query->where('com_to_inv', 'Petro-Tank Solutions');
+                    })->count();                    
+                    $monthFCounts_pts[$month] = $F_pts_count > 0 ? $F_pts_count : 0;
+
+                    $P_pts_count = Testings::when($auth_role > 5, function ($query) use ($auth_id) { return $query->where('tech_id', $auth_id)->orWhere('cus_id', $auth_id); })->whereYear('created_at', $currentYear)->whereMonth('created_at', $month)->where('status', 'pending')->whereHas('customer', function ($query) {
+                        $query->where('com_to_inv', 'Petro-Tank Solutions');
+                    })->count();                    
+                    $monthPCounts_pts[$month] = $P_pts_count > 0 ? $P_pts_count : 0;
                 }
-                $monthlyF_ins = implode(',', $monthFCounts);
-                $monthlyP_ins = implode(',', $monthPCounts);
+                $monthlyF_ins_amts = implode(',', $monthFCounts_amts);
+                $monthlyP_ins_amts = implode(',', $monthPCounts_amts);
+                $monthlyF_ins_pts = implode(',', $monthFCounts_pts);
+                $monthlyP_ins_pts = implode(',', $monthPCounts_pts);
 
                 $work_orders = Work_orders::when($auth_role > 4, function ($query) use ($auth_id) { return $query->where('tech_id', $auth_id)->orWhere('customer_id', $auth_id); })->get();
 
@@ -88,44 +107,39 @@ class DashboardController extends Controller
                 }
 
                 if($user->role < 5){
-                    $am_locations = Ro_locations::whereHas('customer', function($query) {
-                                        $query->where('com_to_inv', 'AMTS')->whereNull('deleted');
-                                    })->get();
-                    $unique_am_locs = $am_locations->unique('route_id');
+                    $am_r_lists = Route_lists::whereHas('route', function ($query) {
+                        $query->whereNull('deleted')->whereHas('ro_locations', function ($query) {
+                            $query->whereHas('customer', function ($query) {
+                                $query->where('com_to_inv', 'AMTS')->whereNull('deleted');
+                            });
+                        });
+                    })->get();
+                    
+                    $tot_am_ro = Routes::whereNull('deleted')->whereHas('ro_locations', function ($query) {
+                        $query->whereHas('customer', function ($query) {
+                            $query->where('com_to_inv', 'AMTS')->whereNull('deleted');
+                        });
+                    })->get()->count();
+                    $tot_am_com_ro = $am_r_lists->filter(function ($item) use ($currentYear, $currentMonth) {
+                        return $item->status === 'completed' && Carbon::parse($item->updated_at)->year === $currentYear && Carbon::parse($item->updated_at)->month === $currentMonth;
+                    })->count();
 
-                    $tot_am_ro = 0;
-                    $tot_am_com_ro = 0;
-                    foreach ($unique_am_locs as $loc) {
-                        if (Carbon::parse($loc->route->created_at)->isCurrentMonth()) {
-                            if(!$loc->route->route_lists()->where('status', '!=', 'completed')->first()){
-                                $tot_am_com_ro ++;
-                            }
-                        }
-                        
-                        if(!$loc->route->deleted) {
-                            $tot_am_ro ++;
-                        }
-                    }
-
-
-                    $pt_locations = Ro_locations::whereHas('customer', function($query) {
-                                        $query->where('com_to_inv', 'Petro-Tank Solutions')->whereNull('deleted');
-                                    })->get();
-                    $unique_pt_locs = $pt_locations->unique('route_id');
-
-                    $tot_pt_ro = 0;
-                    $tot_pt_com_ro = 0;
-                    foreach ($unique_pt_locs as $loc) {
-                        if (Carbon::parse($loc->route->created_at)->isCurrentMonth()) {
-                            if(!$loc->route->route_lists()->where('status', '!=', 'completed')->first()){
-                                $tot_pt_com_ro ++;
-                            }
-                        }
-                        
-                        if(!$loc->route->deleted) {
-                            $tot_pt_ro ++;
-                        }
-                    }
+                    $pt_r_lists = Route_lists::whereHas('route', function ($query) {
+                        $query->whereNull('deleted')->whereHas('ro_locations', function ($query) {
+                            $query->whereHas('customer', function ($query) {
+                                $query->where('com_to_inv', 'Petro-Tank Solutions')->whereNull('deleted');
+                            });
+                        });
+                    })->get();
+                    
+                    $tot_pt_ro = Routes::whereNull('deleted')->whereHas('ro_locations', function ($query) {
+                        $query->whereHas('customer', function ($query) {
+                            $query->where('com_to_inv', 'Petro-Tank Solutions')->whereNull('deleted');
+                        });
+                    })->get()->count();
+                    $tot_pt_com_ro = $pt_r_lists->filter(function ($item) use ($currentYear, $currentMonth) {
+                        return $item->status === 'completed' && Carbon::parse($item->updated_at)->year === $currentYear && Carbon::parse($item->updated_at)->month === $currentMonth;
+                    })->count();
 
                 } else {
                     $tot_am_ro = '';
@@ -144,12 +158,28 @@ class DashboardController extends Controller
                                 })->orWhere(function($query) use ($now, $nextMonth) {
                                     $query->whereBetween('expire_date', [$now->toDateString(), $nextMonth->toDateString()]);
                                 })->get();
+                                
+                    $comp_docs = Comp_docs::where(function($query) use ($now) {
+                        $query->where('type', '!=', 'No Expiry')->where('expire_date', '<', $now->toDateString());
+                    })->orWhere(function($query) use ($now, $nextMonth) {
+                        $query->where('type', '!=', 'No Expiry')->whereBetween('expire_date', [$now->toDateString(), $nextMonth->toDateString()]);
+                    })->get();
+                    
+                    $ex_licenses = $ex_licenses->merge($comp_docs);
                 } else {
                     $ex_licenses = Cus_licenses::where(function($query) use ($now, $user) {
                                     $query->where('customer_id', $user->id)->where('expire_date', '<', $now->toDateString());
                                 })->orWhere(function($query) use ($now, $nextMonth, $user) {
                                     $query->where('customer_id', $user->id)->whereBetween('expire_date', [$now->toDateString(), $nextMonth->toDateString()]);
                                 })->get();
+                    
+                    $comp_docs = Comp_docs::where(function($query) use ($now, $user) {
+                                    $query->where('customer_id', $user->id)->where('type', '!=', 'No Expiry')->where('expire_date', '<', $now->toDateString());
+                                })->orWhere(function($query) use ($now, $nextMonth, $user) {
+                                    $query->where('customer_id', $user->id)->where('type', '!=', 'No Expiry')->whereBetween('expire_date', [$now->toDateString(), $nextMonth->toDateString()]);
+                                })->get();
+                                
+                    $ex_licenses = $ex_licenses->merge($comp_docs);
                                 
                     $stores = $user->stores;
                     foreach($stores as $str){
@@ -158,6 +188,14 @@ class DashboardController extends Controller
                                 })->orWhere(function($query) use ($now, $nextMonth, $str) {
                                     $query->where('customer_id', $str->id)->whereBetween('expire_date', [$now->toDateString(), $nextMonth->toDateString()]);
                                 })->get();
+                        
+                        $str_comp_docs = Comp_docs::where(function($query) use ($now, $str) {
+                                    $query->where('customer_id', $str->id)->where('type', '!=', 'No Expiry')->where('expire_date', '<', $now->toDateString());
+                                })->orWhere(function($query) use ($now, $nextMonth, $str) {
+                                    $query->where('customer_id', $str->id)->where('type', '!=', 'No Expiry')->whereBetween('expire_date', [$now->toDateString(), $nextMonth->toDateString()]);
+                                })->get();
+                                
+                        $str_ex_licenses = $str_ex_licenses->merge($str_comp_docs);
                                 
                         $ex_licenses = $ex_licenses->merge($str_ex_licenses);
                         $stores_cnt++;
@@ -177,10 +215,12 @@ class DashboardController extends Controller
                 $mnth_pts_tot   = count(User::where('role', 6)->whereNull('deleted')->where('cus_type', 'Monthly')->where('com_to_inv', 'Petro-Tank Solutions')->get()) ?? 0;
                 $anual_pts_tot  = count(User::where('role', 6)->whereNull('deleted')->where('cus_type', 'Annual')->where('com_to_inv', 'Petro-Tank Solutions')->get()) ?? 0;              
 
-                return view('dashboard', compact('stores_cnt', 'ex_licenses', 'mnth_amts_tot', 'anual_amts_tot', 'mnth_pts_tot', 'anual_pts_tot', 'tot_am_ro', 'tot_pt_ro', 'tot_am_com_ro', 'tot_pt_com_ro', 'pending_count', 'acknowladge_count', 'finished_count', 'rtr_count', 'pending_perc', 'acknowladge_perc', 'finished_perc', 'rtr_perc', 'monthlyF_ins', 'monthlyP_ins', 'currentyrtotal', 'lastyrtotal', 'sup_ad_cnt', 'sup_ad_cnt', 'ad_cnt', 'staff_cnt', 'ft_sup_cnt', 'ft_cnt', 'cus_cnt', 'cus_cnt_mnth', 'cus_cnt_ann'));
+                return view('dashboard', compact('stores_cnt', 'ex_licenses', 'mnth_amts_tot', 'anual_amts_tot', 'mnth_pts_tot', 'anual_pts_tot', 'tot_am_ro', 'tot_pt_ro', 'tot_am_com_ro', 'tot_pt_com_ro', 'pending_count', 'acknowladge_count', 'finished_count', 'rtr_count', 'pending_perc', 'acknowladge_perc', 'finished_perc', 'rtr_perc', 'monthlyF_ins_amts', 'monthlyP_ins_pts', 'monthlyF_ins_pts', 'monthlyP_ins_amts', 'currentyrtotal', 'lastyrtotal', 'sup_ad_cnt', 'sup_ad_cnt', 'ad_cnt', 'staff_cnt', 'ft_sup_cnt', 'ft_cnt', 'cus_cnt', 'cus_cnt_mnth', 'cus_cnt_ann'));
             }
 
             return view('dashboard');
+        } elseif (auth()->user() && auth()->user()->role === 6) {
+            return redirect()->route('employees', ['parent' => 110, 'list', 'cus']);
         }
 
         Auth::logout();

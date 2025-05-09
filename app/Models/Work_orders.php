@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Work_orders extends Model
 {
     use HasFactory;
+    
+    //public $timestamps = false;
 
-    protected $fillable = ['wo_number', 'customer_id', 'status', 'tech_id', 'fleet_id', 'date', 'start_date', 'comp_date', 'comp_time', 'time', 'priority', 'comment', 'description', 'createdBy'];
+    protected $fillable = ['wo_number', 'customer_id', 'status', 'tech_id', 'fleet_id', 'date', 'start_date', 'comp_date', 'comp_time', 'time', 'priority', 'comment', 'description', 'createdBy', 'invoiced'];
 
     public function service_calls()
     {

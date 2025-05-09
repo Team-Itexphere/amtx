@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 use App\Models\Invoices;
 use App\Models\Invoice_items;
@@ -14,6 +15,7 @@ use App\Models\User;
 use PDF;
 use Mail;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class InvoicesController extends Controller
 {
@@ -33,6 +35,7 @@ class InvoicesController extends Controller
         $s = request('s', '');
         $fltRole = request('role', '');
         $dateRange  = request('d_range', '');
+        $status = request('status', '');
         
         $role = auth()->user()->role;
         $auth_user = auth()->user();
@@ -75,13 +78,31 @@ class InvoicesController extends Controller
             }
             
             $fac_id = null;
-            if($store && $store != ''){ 
-                $str_usr = User::find($store);
-                $fac_id = $str_usr->fac_id;
-                $invoices = $invoices->where('customer_id', $store);
-            }
-            
-            $invoices = $invoices->orderBy('created_at', 'desc')->get();
+$invoices = Invoices::query(); // Start with a query builder instance
+
+if ($store && $store != '') { 
+    $str_usr = User::find($store);
+    $fac_id = $str_usr->fac_id ?? null;
+    $invoices->where('customer_id', $store);
+}
+
+if ($role == 5) { 
+    $invoices->where('createdBy', $auth_id);
+}
+
+if ($status) {
+    $invoices->where(function ($query) use ($status) {
+        $query->where('payment', $status)->orWhereNull('payment');
+    });
+}
+
+// Role-based filtering
+/*if ($role > 3) {
+    $invoices = auth()->user()->invoices()->whereColumn('id', '!=', 0); // Ensures invoices aren't overridden
+}*/
+
+// Apply sorting and fetch results
+$invoices = $invoices->orderBy('created_at', 'desc')->get();
             
             foreach($invoices as $inv){
                 if($inv->updatedBy){
@@ -90,7 +111,7 @@ class InvoicesController extends Controller
                     foreach ($updatedByArr as &$By) {
                         $By[0] = User::find($By[0])->name ?? 'Unknown';
                         
-                        $By[1] = Carbon::parse($By[1])->format('m/d/Y H:s A');
+                        $By[1] = Carbon::parse($By[1])->setTimezone('America/Chicago')->format('m/d/Y H:s A');
                     }
             
                     $inv->updatedBy = $updatedByArr;
@@ -127,32 +148,47 @@ class InvoicesController extends Controller
 
             $last_inv = Invoices::orderBy('invoice_no', 'desc')->first();
         
-            if($last_inv){
-                $inv_no = $last_inv->invoice_no + 1;
-                $inv_no = str_pad($last_inv->id + 1, 5, '0', STR_PAD_LEFT);
+            if ($last_inv) {
+                $last_inv_number = (int)substr($last_inv->invoice_no, 2);
+                $new_inv_number = $last_inv_number + 1;
+                $inv_no = 'PT' . $new_inv_number;
             } else {
-                $inv_no = '00001';
+                $inv_no = 'PT1';
+            }
+            
+            $edit_inv = null;
+            if($request->input('id')){
+                $edit_inv = Invoices::find($request->input('id'));
+                if ($edit_inv && $edit_inv->payment == 'Paid') {
+                    return response()->json(['message' => 'Access Denied'], 401);
+                }
             }
     
             $new_invoice_data = [
-                'invoice_no' => $inv_no,
-                'date' => $request->input('date'),
-                'service' => $request->input('service'),
-                'customer_id' => $request->input('customer_id'),
-                'route_list_id' => $request->input('list_id') ?? null,
-                'payment' => $request->input('payment') ?? ($request->input('pay_opt') != '' ? 'Paid' : null),
-                'po_no' => $request->input('po_no'),
-                'pay_opt' => $request->input('pay_opt'),
-                'check_no' => $request->input('check_no'),
-                'mo_no' => $request->input('mo_no'),
-                'comment' => $request->input('comment'),
-                'addi_comments' => $request->input('addi_comments'),
-                'createdBy' => auth()->user()->id,
+                'invoice_no' => $edit_inv ? $edit_inv->invoice_no : $inv_no,
+                'date' => $request->input('date') ?? ($edit_inv ? $edit_inv->date : null),
+                'service' => $edit_inv && $edit_inv->service == 'Monthly Inspection' ? $edit_inv->service : $request->input('service'),
+                'customer_id' => $edit_inv ? $edit_inv->customer_id : $request->input('customer_id'),
+                'route_list_id' => $edit_inv ? $edit_inv->route_list_id : ($request->input('list_id') ?? null),
+                'payment' => $request->input('payment') ?? ($request->input('pay_opt') != '' ? 'Paid' : ($edit_inv ? $edit_inv->payment : null)),
+                'po_no' => $request->input('po_no') ?? ($edit_inv ? $edit_inv->po_no : null),
+                'pay_opt' => $request->input('pay_opt') ?? ($edit_inv ? $edit_inv->pay_opt : null),
+                'check_no' => $request->input('check_no') ?? ($edit_inv ? $edit_inv->check_no : null),
+                'mo_no' => $request->input('mo_no') ?? ($edit_inv ? $edit_inv->mo_no : null),
+                'comment' => $request->input('comment') ?? ($edit_inv ? $edit_inv->comment : null),
+                'addi_comments' => $request->input('addi_comments') ?? ($edit_inv ? $edit_inv->addi_comments : null),
+                'createdBy' => $edit_inv ? $edit_inv->createdBy : auth()->user()->id,
+                'updated_at' => Carbon::now('America/Chicago')
             ];
             
+            if($edit_inv){
+                $edit_inv->fill($new_invoice_data)->save();
+                $invoice = $edit_inv;
+            } else {
+                $new_invoice_data['created_at'] = Carbon::now('America/Chicago');
+                $invoice = Invoices::forceCreate($new_invoice_data);
+            }
             
-            
-            $invoice = Invoices::create($new_invoice_data);
             $invoice_id = $invoice->id;
             
             if($request->input('paid_amount') && $request->input('paid_date')){
@@ -161,72 +197,59 @@ class InvoicesController extends Controller
                 $invoice->paid_amount = $paid;
             }
 
-            /*if($invoice && $request->filled('invoice_items')){
-                $invoice_items = json_decode($request->input('invoice_items'), true);
-
-                foreach($invoice_items as $item) {
-
-                    if(isset($item['descript'])){
-
-                        $item = new Invoice_items([
-                            'invoice_id' => $invoice_id,
-                            'descript' => $item['descript'],
-                            'is_inspection' => 'Yes',
-                            'qty' => $item['qty'],
-                            'rate' => $item['rate'],
-                            'amount' => $item['amount'],
-                        ]);
-
-                        $invoice->invoice_items()->save($item);
-
-                    }
-                }
-            }*/
-            
             if($invoice && $request->filled('items')){
                 $items = json_decode($request->input('items'), true);
-
+                $invoice->invoice_items()->delete();
+                
                 foreach($items as $item) {
                     $item['item_name'] = isset($item['item_name']) ? $item['item_name'] : null;
                     $item['category'] = isset($item['category']) ? $item['category'] : null;
 
-                    $inv_item = new Invoice_items([
+                    $inv_item = [
                         'invoice_id' => $invoice_id,
                         'item_name' => $item['item_name'],
                         'category' => $item['category'],
                         'descript' => $item['description'],
+                        'location' => $item['location'] ?? null,
                         'qty' => $item['qty'] ?? null,
                         'rate' => $item['rate'] ?? null,
                         'amount' => $item['amount'],
-                    ]);
+                        'created_at' => Carbon::now('America/Chicago'),
+                        'updated_at' => Carbon::now('America/Chicago')
+                    ];
 
-                    $invoice->invoice_items()->save($inv_item);
+                    Invoice_items::forceCreate($inv_item);
                     
-                    if($item['category'] != 'Monthly Inspection' && request()->is('api/testing*')){
-                        $maintaince_log = new Maintain_logs([
+                    if($item['category'] != 'Monthly Inspection' && $item['category'] != 'Service Call' && request()->is('api/testing*') && $item['description'] != 'Calibration Labor'){
+                        $maintaince_log = [
                             'invoice_id' => $invoice_id,
                             'cus_id' => $request->input('customer_id'),
                             'category' => $item['category'],
                             'descript' => $item['description'],
-                            'des_problem' => $item['des_problem'],
+                            'des_problem' => isset($item['des_problem']) ? $item['des_problem'] : null,
                             'qty' => $item['qty'] ?? null,
                             'rate' => $item['rate'] ?? null,
                             'amount' => $item['amount'],
-                            'date' => date('Y-m-d'),
+                            'date' => Carbon::now('America/Chicago')->format('Y-m-d'),
                             'location' => $item['location'] ?? null,
                             'tech_id' => auth()->user()->id,
-                        ]);
+                            'updated_at' => Carbon::now('America/Chicago')
+                        ];
                         
-                        $invoice->maintain_logs()->save($maintaince_log);
+                        $exist_log = $invoice->maintain_logs()->where('descript', $item['description'])->first();
+                        
+                        if($exist_log){
+                            $exist_log->fill($maintaince_log);
+                            $exist_log->save();
+                        } else {
+                            $maintaince_log['created_at'] = Carbon::now('America/Chicago');
+                            Maintain_logs::forceCreate($maintaince_log);
+                        }
                     }
                 }
             }
 
             if(request()->is('api/testing*')){
-                /*$testing = Testings::find($request->input('testing_id'));
-                $testing->invoice_id = $invoice->id;
-                $testing->save();*/
-    
                 $invoice_link = url("invoices/" . $invoice->invoice_no . '.pdf');
                 return $this->pdfGen($invoice);
             }
@@ -254,6 +277,7 @@ class InvoicesController extends Controller
         $pdf->save($filePath);
 
         $invoice->file_name = $invoice->invoice_no . '.pdf';
+        $invoice->updated_at = Carbon::now('America/Chicago');
         $invoice->save();
 
         /*/ send email -
@@ -278,8 +302,12 @@ class InvoicesController extends Controller
         // - send email*/
 
         if(request()->is('api/testing*') || request()->is('api/invoice*')){
-            $invoice_link = url("invoices/" . $invoice->invoice_no . '.pdf');
-            return response()->json(['invoice_link' => $invoice_link]);
+            $invoice_link = url("invoices/" . $invoice->invoice_no . '.pdf?v=' . Str::random(3));
+            return response()->json([
+                'id' => $invoice->id,
+                'invoice_link' => $invoice_link,
+                'has_sign' => (bool) $invoice->signature
+            ]);
         }
 
     }
@@ -298,7 +326,7 @@ class InvoicesController extends Controller
             $invoice_id = $request->input('inv_id');
             $invoice = Invoices::find($invoice_id);
             
-            if ($role > 3) {
+            if ($role > 3 || $invoice->payment == 'Paid') {
                 return redirect('/dashboard/invoice?edit='.$invoice_id)->with('error', 'Access denied');
             }
     
@@ -325,8 +353,9 @@ class InvoicesController extends Controller
             }
             
             $updatedBy = $invoice->updatedBy ? json_decode($invoice->updatedBy, true) : [];
-            $updatedBy[] = [auth()->id(), now()->toDateTimeString()];
+            $updatedBy[] = [auth()->id(), Carbon::now('America/Chicago')->toDateTimeString()];
             $invoice->updatedBy = $updatedBy;
+            $invoice->updated_at = Carbon::now('America/Chicago');
     
             $invoice->save();
 
@@ -338,7 +367,7 @@ class InvoicesController extends Controller
 
                 foreach($invoice_items as $item) {
 
-                    if(isset($item['descript'])){
+                    /*if(isset($item['descript'])){
 
                         $item = new Invoice_items([
                             'invoice_id' => $invoice_id,
@@ -351,7 +380,7 @@ class InvoicesController extends Controller
 
                         $invoice->invoice_items()->save($item);
 
-                    }
+                    }*/
                 }
             }
     
@@ -363,31 +392,135 @@ class InvoicesController extends Controller
     
     
     // for API
-    public function createInvoice(Request $request)
+    public function editInvoice(Request $request)
     {
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
 
             $last_inv = Invoices::orderBy('invoice_no', 'desc')->first();
         
-            if($last_inv){
-                $inv_no = $last_inv->invoice_no + 1;
-                $inv_no = str_pad($last_inv->id + 1, 5, '0', STR_PAD_LEFT);
+            if ($last_inv) {
+                $last_inv_number = (int)substr($last_inv->invoice_no, 2);
+                $new_inv_number = $last_inv_number + 1;
+                $inv_no = 'PT' . $new_inv_number;
             } else {
-                $inv_no = '00001';
+                $inv_no = 'PT1';
+            }
+            
+            if($request->input('inv_id') || $request->input('id')){
+                $id = $request->input('inv_id') ?? $request->input('id');
+                $edit_inv = Invoices::find($id);
+                if (!$edit_inv) {
+                    return response()->json(['message' => 'Invoice Not Found'], 404);
+                }
+                
+                if($request->input('signature')){
+                    $fileData = $request->input('signature');
+                    $file = base64_decode(explode(',', $fileData)[1], true);
+
+                    $file_name = $edit_inv->invoice_no . ".png";
+                    $directoryPath = public_path("invoices/");
+                    $new_file_path = $directoryPath . $file_name;
+                    
+                    file_put_contents($new_file_path, $file);
+
+                    $signature = "/invoices/" . $file_name . '?v=' . Str::random(3);
+                    
+                    $new_invoice_data = [
+                        'signature' => $signature
+                    ];
+                } else {
+                    $new_invoice_data = [
+                        'addi_comments' => $request->input('addi_comments') ?? $edit_inv->addi_comments,
+                        'pay_opt' => $request->input('pay_opt'),
+                        'payment' => $request->input('payment') ?? ($request->input('pay_opt') != '' ? 'Paid' : null),
+                        'check_no' => $request->input('check_no'),
+                        'mo_no' => $request->input('mo_no')
+                    ];
+                }
+                
+                $items = $request->filled('items') ? $request->input('items') : [];
+                if(count($items) > 0 && !$request->filled('signature') && !$request->filled('payment') && !$request->input('pay_opt')){
+                    $edit_inv->invoice_items()->delete();
+                    
+                    foreach($items as $item) {
+                        $item['item_name'] = isset($item['item_name']) ? $item['item_name'] : null;
+                        $item['category'] = isset($item['category']) ? $item['category'] : null;
+    
+                        $inv_item = new Invoice_items([
+                            'invoice_id' => $id,
+                            'item_name' => $item['item_name'],
+                            'category' => $item['category'],
+                            'descript' => $item['description'],
+                            'location' => $item['location'] ?? null,
+                            'qty' => $item['qty'] ?? null,
+                            'rate' => $item['rate'] ?? null,
+                            'amount' => $item['amount'],
+                            'created_at' => Carbon::now('America/Chicago'),
+                            'updated_at' => Carbon::now('America/Chicago')
+                        ]);
+    
+                        $edit_inv->invoice_items()->save($inv_item);
+                        
+                        if($item['category'] != 'Monthly Inspection' && $item['category'] != 'Service Call' && $item['description'] != 'Calibration Labor'){
+                            $maintaince_log = [
+                                'invoice_id' => $id,
+                                'cus_id' => $edit_inv->customer_id,
+                                'category' => $item['category'],
+                                'descript' => $item['description'],
+                                'des_problem' => isset($item['des_problem']) ? $item['des_problem'] : null,
+                                'qty' => $item['qty'] ?? null,
+                                'rate' => $item['rate'] ?? null,
+                                'amount' => $item['amount'],
+                                'date' => Carbon::now('America/Chicago')->format('Y-m-d'),
+                                'location' => $item['location'] ?? null,
+                                'tech_id' => auth()->user()->id,
+                                'updated_at' => Carbon::now('America/Chicago')
+                            ];
+                            
+                            $exist_log = $edit_inv->maintain_logs()->where('descript', $item['description'])->first();
+                            if($exist_log){
+                                $exist_log->fill($maintaince_log);
+                                $exist_log->save();
+                            } else {
+                                $maintaince_log['created_at'] = Carbon::now('America/Chicago');
+                                Maintain_logs::forceCreate($maintaince_log);
+                            }
+                        }
+                    }
+                }
+                
+                $edit_inv->updated_at = Carbon::now('America/Chicago');
+                $edit_inv->fill($new_invoice_data)->save();
+                
+                $this->pdfGen($edit_inv);
+                
+                $invoice_link = url("invoices/" . $edit_inv->invoice_no . '.pdf?v=' . Str::random(3));
+                return response()->json([
+                    'id' => $edit_inv->id,
+                    'invoice_link' => $invoice_link,
+                    'has_sign' => (bool) $edit_inv->signature
+                ]);
+                
+            } else {
+                $new_invoice_data = [
+                    'invoice_no' => $inv_no,
+                    'date' => Carbon::now('America/Chicago')->format('Y-m-d'),
+                    'customer_id' => $request->input('customer_id'),
+                    'pay_opt' => $request->input('pay_opt'),
+                    'payment' => $request->input('payment') ?? ($request->input('pay_opt') != '' ? 'Paid' : null),
+                    'check_no' => $request->input('check_no'),
+                    'mo_no' => $request->input('mo_no'),
+                    'addi_comments' => $request->input('addi_comments'),
+                    'service' => $request->input('service'),
+                    'createdBy' => auth()->user()->id,
+                    'created_at' => Carbon::now('America/Chicago'),
+                    'updated_at' => Carbon::now('America/Chicago')
+                ];
             }
     
-            $new_invoice_data = [
-                'invoice_no' => $inv_no,
-                'date' => date('Y-m-d'),
-                'customer_id' => $request->input('customer_id'),
-                'pay_opt' => $request->input('pay_opt'),
-                'payment' => $request->input('payment') ?? ($request->input('pay_opt') != '' ? 'Paid' : null),
-                'check_no' => $request->input('check_no'),
-                'mo_no' => $request->input('mo_no'),
-                'createdBy' => auth()->user()->id,
-            ];
+            
             
             $invoice = Invoices::create($new_invoice_data);
             $invoice_id = $invoice->id;
@@ -396,7 +529,7 @@ class InvoicesController extends Controller
                 $items = $request->input('items');
 
                 foreach($items as $item) {
-                    $inv_item = new Invoice_items([
+                    /*$inv_item = new Invoice_items([
                         'invoice_id' => $invoice_id,
                         'category' => $item['category'],
                         'descript' => $item['description'],
@@ -404,7 +537,45 @@ class InvoicesController extends Controller
                         'amount' => $item['amount'],
                     ]);
 
+                    $invoice->invoice_items()->save($inv_item);*/
+                    
+                    $item['item_name'] = isset($item['item_name']) ? $item['item_name'] : null;
+                    $item['category'] = isset($item['category']) ? $item['category'] : null;
+
+                    $inv_item = new Invoice_items([
+                        'invoice_id' => $invoice_id,
+                        'item_name' => $item['item_name'],
+                        'category' => $item['category'],
+                        'descript' => $item['description'],
+                        'location' => $item['location'] ?? null,
+                        'qty' => $item['qty'] ?? null,
+                        'rate' => $item['rate'] ?? null,
+                        'amount' => $item['amount'],
+                        'created_at' => Carbon::now('America/Chicago'),
+                        'updated_at' => Carbon::now('America/Chicago')
+                    ]);
+
                     $invoice->invoice_items()->save($inv_item);
+                    
+                    if($item['category'] != 'Monthly Inspection' && $item['category'] != 'Service Call' && $item['description'] != 'Calibration Labor'){
+                        $maintaince_log = new Maintain_logs([
+                            'invoice_id' => $invoice_id,
+                            'cus_id' => $request->input('customer_id'),
+                            'category' => $item['category'],
+                            'descript' => $item['description'],
+                            'des_problem' => isset($item['des_problem']) ? $item['des_problem'] : null,
+                            'qty' => $item['qty'] ?? null,
+                            'rate' => $item['rate'] ?? null,
+                            'amount' => $item['amount'],
+                            'date' => Carbon::now('America/Chicago')->format('Y-m-d'),
+                            'location' => $item['location'] ?? null,
+                            'tech_id' => auth()->user()->id,
+                            'created_at' => Carbon::now('America/Chicago'),
+                            'updated_at' => Carbon::now('America/Chicago')
+                        ]);
+                        
+                        $invoice->maintain_logs()->save($maintaince_log);
+                    }
                 }
             }
             
@@ -414,6 +585,27 @@ class InvoicesController extends Controller
 
             return response()->json(['message' => 'Access Denied'], 401);
 
+        }
+
+    }
+    
+    public function inv_list(Request $request)
+    {
+        if ( auth()->user()->role < 6 && request()->has('cus_id')) {
+
+            $inv_list = Invoices::with('invoice_items')->where('customer_id', request()->input('cus_id'))->where('createdBy', auth()->user()->id)->latest()->take(30)->get()
+                        ->map(function ($inv) {
+                            $inv->pdf_link = url("invoices/" . $inv->file_name);
+                            $inv->has_sign = (bool) $inv->signature;
+                            return $inv;
+                        });
+            
+            return $inv_list;
+
+        } else {
+            
+            return response()->json(['message' => 'Not Found'], 404);
+            
         }
 
     }

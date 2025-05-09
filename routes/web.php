@@ -39,6 +39,7 @@ Route::get('/dashboard/stores', [App\Http\Controllers\Dashboard\StoresController
 Route::get('/dashboard/employees', [App\Http\Controllers\Dashboard\EmployeesController::class, 'index'])->name('employees');
 Route::get('/dashboard/cus-notes', [App\Http\Controllers\Dashboard\EmployeesController::class, 'view_cus_notes'])->name('cus-notes');
 Route::get('/dashboard/cus-licenses', [App\Http\Controllers\Dashboard\Cus_licensesController::class, 'index'])->name('cus-licenses');
+Route::get('/dashboard/cus-sir-inv-docs', [App\Http\Controllers\Dashboard\Cus_sir_inv_docsController::class, 'index'])->name('cus-sir-inv-docs');
 Route::get('/dashboard/site-info', [App\Http\Controllers\Dashboard\Site_infosController::class, 'index'])->name('site-info');
 Route::get('/dashboard/comp-docs', [App\Http\Controllers\Dashboard\Comp_docsController::class, 'index'])->name('comp-docs');
 Route::get('/dashboard/maintain-logs', [App\Http\Controllers\Dashboard\Maintain_logsController::class, 'index'])->name('maintain-logs');
@@ -57,6 +58,9 @@ Route::get('/dashboard/work-orders', [App\Http\Controllers\Dashboard\Work_orders
 Route::get('/dashboard/work-order/service-call/images', [App\Http\Controllers\Dashboard\Work_ordersController::class, 'wo_images'])->name('service-call-images');
 Route::get('/dashboard/settings', [App\Http\Controllers\Dashboard\SettingsController::class, 'index'])->name('settings');
 Route::get('/dashboard/my-profile', [App\Http\Controllers\Dashboard\EmployeesController::class, 'index'])->name('my-profile');
+Route::get('/dashboard/my-pictures', [App\Http\Controllers\Dashboard\EmployeesController::class, 'index'])->name('my-pictures');
+
+Route::get('/delete/pic/{id}', [App\Http\Controllers\Dashboard\PicturesController::class, 'delete']);
 
 Route::post('/dashboard/employees/add', [App\Http\Controllers\Dashboard\EmployeesController::class, 'add']);
 Route::post('/dashboard/employees/edit', [App\Http\Controllers\Dashboard\EmployeesController::class, 'edit']);
@@ -69,6 +73,10 @@ Route::get('/detach/store', [App\Http\Controllers\Dashboard\EmployeesController:
 Route::post('/dashboard/customers/licenses/add', [App\Http\Controllers\Dashboard\Cus_licensesController::class, 'add']);
 Route::post('/dashboard/customers/licenses/edit', [App\Http\Controllers\Dashboard\Cus_licensesController::class, 'edit']);
 Route::get('/delete/cus-license/{id}', [App\Http\Controllers\Dashboard\Cus_licensesController::class, 'delete_li']);
+
+Route::post('/dashboard/customers/cus-sir-inv-docs/add', [App\Http\Controllers\Dashboard\Cus_sir_inv_docsController::class, 'add']);
+Route::post('/dashboard/customers/cus-sir-inv-docs/edit', [App\Http\Controllers\Dashboard\Cus_sir_inv_docsController::class, 'edit']);
+Route::get('/delete/cus-sir-inv-docs/{id}', [App\Http\Controllers\Dashboard\Cus_sir_inv_docsController::class, 'delete_sid']);
 
 Route::post('/dashboard/customers/site-info/add', [App\Http\Controllers\Dashboard\Site_infosController::class, 'add']);
 Route::post('/dashboard/customers/site-info/edit', [App\Http\Controllers\Dashboard\Site_infosController::class, 'edit']);
@@ -96,31 +104,23 @@ Route::get('/dashboard/route/notes', [App\Http\Controllers\Dashboard\EmployeesCo
 Route::post('/dashboard/route/add-note', [App\Http\Controllers\Dashboard\EmployeesController::class, 'add_cus_note']);
 Route::post('/dashboard/route/edit-note', [App\Http\Controllers\Dashboard\EmployeesController::class, 'edit_cus_note']);
 
+Route::post('/dashboard/testing/edit-questions', [App\Http\Controllers\Dashboard\TestingsController::class, 'edit_questions']);
+Route::post('/dashboard/testing/edit', [App\Http\Controllers\Dashboard\TestingsController::class, 'edit_survey']);
+
 Route::post('/dashboard/tests/add/release-detection-annual-testing', [App\Http\Controllers\Dashboard\TestsController::class, 'add_rda_testing']);
 Route::post('/dashboard/tests/add/atg-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_atg_test']);
-
-
-//Route::post('/dashboard/communication/send', [App\Http\Controllers\Dashboard\CommunicationController::class, 'send']);
-//Route::post('/dashboard/stores/add', [App\Http\Controllers\Dashboard\StoresController::class, 'add']);
-//Route::post('/dashboard/stores/edit', [App\Http\Controllers\Dashboard\StoresController::class, 'edit']);
-//Route::post('/dashboard/stores/equipments/add', [App\Http\Controllers\Dashboard\EquipmentsController::class, 'add']);
-//Route::post('/dashboard/stores/equipments/edit', [App\Http\Controllers\Dashboard\EquipmentsController::class, 'edit']);
-//Route::post('/dashboard/stores/licenses/add', [App\Http\Controllers\Dashboard\Store_licensesController::class, 'add']);
-//Route::post('/dashboard/stores/licenses/edit', [App\Http\Controllers\Dashboard\Store_licensesController::class, 'edit']);
-//Route::post('/dashboard/stores/fuel_tanks/add', [App\Http\Controllers\Dashboard\Fuel_tanksController::class, 'add']);
-//Route::post('/dashboard/stores/fuel_tanks/edit', [App\Http\Controllers\Dashboard\Fuel_tanksController::class, 'edit']);
-//Route::post('/dashboard/stores/pumps/add', [App\Http\Controllers\Dashboard\PumpsController::class, 'add']);
-//Route::post('/dashboard/stores/pumps/edit', [App\Http\Controllers\Dashboard\PumpsController::class, 'edit']);
-//Route::post('/dashboard/stores/tenants/add', [App\Http\Controllers\Dashboard\TenantsController::class, 'add']);
-//Route::post('/dashboard/stores/tenants/edit', [App\Http\Controllers\Dashboard\TenantsController::class, 'edit']);
-//Route::post('/dashboard/stores/utilities/add', [App\Http\Controllers\Dashboard\UtilitiesController::class, 'add']);
-//Route::post('/dashboard/stores/utilities/edit', [App\Http\Controllers\Dashboard\UtilitiesController::class, 'edit']);
-//Route::post('/dashboard/stores/vendors/add', [App\Http\Controllers\Dashboard\VendorsController::class, 'add']);
-//Route::post('/dashboard/stores/vendors/edit', [App\Http\Controllers\Dashboard\VendorsController::class, 'edit']);
+Route::post('/dashboard/tests/add/cs-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_cs_test']);
+Route::post('/dashboard/tests/add/line-leak-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_line_leak_test']);
+Route::post('/dashboard/tests/add/ls-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_ls_test']);
+Route::post('/dashboard/tests/add/overfill-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_overfill_test']);
+Route::post('/dashboard/tests/add/spill-bucket-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_sb_test']);
+Route::post('/dashboard/tests/add/gcp-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_gcp_test']);
+Route::post('/dashboard/tests/add/iccp-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_iccp_test']);
+Route::post('/dashboard/tests/add/stage-1-test', [App\Http\Controllers\Dashboard\TestsController::class, 'add_stage_1_test']);
 
 Route::post('/dashboard/work_orders/add', [App\Http\Controllers\Dashboard\Work_ordersController::class, 'add']);
 Route::post('/dashboard/work_orders/edit', [App\Http\Controllers\Dashboard\Work_ordersController::class, 'edit']);
-Route::get('/delete/work_orders/{id}', [App\Http\Controllers\Dashboard\Work_ordersController::class, 'delete']);
+Route::get('/delete/work-orders/{id}', [App\Http\Controllers\Dashboard\Work_ordersController::class, 'delete']);
 Route::get('/work-orders/wo-pdf', [App\Http\Controllers\Dashboard\Work_ordersController::class, 'pdfGen'])->name('wo-pdf');
 
 Route::post('/dashboard/settings/edit', [App\Http\Controllers\Dashboard\SettingsController::class, 'edit']);

@@ -56,7 +56,7 @@
             <tbody>
                 @foreach($maintain_logs as $maintain_log)
                     <tr>
-                        <td class="align-middle">{{ $maintain_log->date }}</td>
+                        <td class="align-middle">{{ $maintain_log->date ? \Carbon\Carbon::parse($maintain_log->date)->format('m/d/Y') : '' }}</td>
                         <td class="align-middle">{{ $maintain_log->descript }}</td>
                         <td class="align-middle">{{ $maintain_log->location }}</td>
                         <td class="align-middle">{{ $maintain_log->des_problem }}</td>

@@ -34,12 +34,12 @@
         <td colspan="4" style="font-size: 13px; background: black; color: white; padding: 7px; font-weight: 700;"><center>UST OVERFILL EQUIPMENT INSPECTION <br>AUTOMATIC SHUTOFF DEVICE AND BALL FLOAT VALVE</center></td>
       </tr>
       <tr>
-        <td colspan="2" style="width: 55%;">Facility Name:</td>
-        <td colspan="2" style="width: 45%;">Owner:</td>
+        <td colspan="2" style="width: 55%;">Facility Name: {{ $testing->customer->name }}</td>
+        <td colspan="2" style="width: 45%;">Owner: {{ $testing->customer->own_name }}</td>
       </tr>
       <tr>
-        <td colspan="2" style="width: 55%;">Address:</td>
-        <td colspan="2" style="width: 45%;">Address:</td>
+        <td colspan="2" style="width: 55%;">Address: {{ $testing->customer->str_addr }}</td>
+        <td colspan="2" style="width: 45%;">Address: {{ $testing->customer->str_addr }}</td>
       </tr>
       <tr>
         <td colspan="2" style="width: 55%;">City, State, Zip Code:</td>
@@ -47,97 +47,176 @@
       </td>
       </tr>
       <tr>
-        <td colspan="2" style="width: 55%;">Facility I.D. #:</td>
-        <td colspan="2" style="width: 45%;">Phone #:</td>
+        <td colspan="2" style="width: 55%;">Facility I.D. #: {{ $testing->customer->fac_id }}</td>
+        <td colspan="2" style="width: 45%;">Phone #: {{ $testing->customer->phone }}</td>
       </tr>
       <tr>
-        <td colspan="2" style="width: 55%;">Testing Company:</td>
+        <td colspan="2" style="width: 55%;">Testing Company: {{ $testing->customer->com_to_inv }}</td>
         <td style="width: 22.5%;">Phone #:</td>
-        <td style="width: 22.5%;">Date:</td>
+        <td style="width: 22.5%;">Date: {{ \Carbon\Carbon::parse($testing->date)->format('m/d/Y') }}</td>
       </tr>
       <tr>
         <td colspan="4">This data sheet is for inspecting automatic shutoff devices and ball float valves. See PEI/RP1200 Section 7 for inspection procedures.</td>
       </tr>
     </table>
 
+    @php
+        $test = json_decode($testing->items, true);
+    @endphp
+
     <table class="table" style="font-size: 11px; margin-top: -17px; line-height: 14px;">
         <tr>
-          <td style="width: 37%;">Product Grade</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
+          <td style="width: 37%;">No Grade</td>
+          <td style="width: 10.5%; text-align: center;">{{ $test[0][0] }}</td>
+          <td style="width: 10.5%; text-align: center;">{{ $test[0][1] }}</td>
+          <td style="width: 10.5%; text-align: center;">{{ $test[0][2] }}</td>
+          <td style="width: 10.5%; text-align: center;">{{ $test[0][3] }}</td>
+          <td style="width: 10.5%; text-align: center;">{{ $test[0][4] }}</td>
+          <td style="width: 10.5%; text-align: center;">{{ $test[0][5] }}</td>
         </tr>
         <tr>
-          <td style="width: 37%;">Tank Number</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
+          <td>Tank Number</td>
+          <td style="text-align: center;">{{ $test[1][0] }}</td>
+          <td style="text-align: center;">{{ $test[1][1] }}</td>
+          <td style="text-align: center;">{{ $test[1][2] }}</td>
+          <td style="text-align: center;">{{ $test[1][3] }}</td>
+          <td style="text-align: center;">{{ $test[1][4] }}</td>
+          <td style="text-align: center;">{{ $test[1][5] }}</td>
         </tr>
         <tr>
-          <td style="width: 37%;">Tank Volume, gallons</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
+          <td>Tank Volume, gallons</td>
+          <td style="text-align: center;">{{ $test[2][0] }}</td>
+          <td style="text-align: center;">{{ $test[2][1] }}</td>
+          <td style="text-align: center;">{{ $test[2][2] }}</td>
+          <td style="text-align: center;">{{ $test[2][3] }}</td>
+          <td style="text-align: center;">{{ $test[2][4] }}</td>
+          <td style="text-align: center;">{{ $test[2][5] }}</td>
         </tr>
         <tr>
-          <td style="width: 37%;">Tank Diameter, inches</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
+          <td>Tank Diameter, inches</td>
+          <td style="text-align: center;">{{ $test[3][0] }}</td>
+          <td style="text-align: center;">{{ $test[3][1] }}</td>
+          <td style="text-align: center;">{{ $test[3][2] }}</td>
+          <td style="text-align: center;">{{ $test[3][3] }}</td>
+          <td style="text-align: center;">{{ $test[3][4] }}</td>
+          <td style="text-align: center;">{{ $test[3][5] }}</td>
         </tr>
         <tr>
-          <td style="width: 37%;">Overfill Prevention Device Brand</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
+          <td>Overfill Prevention Device Brand</td>
+          <td style="text-align: center;">{{ $test[4][0] }}</td>
+          <td style="text-align: center;">{{ $test[4][1] }}</td>
+          <td style="text-align: center;">{{ $test[4][2] }}</td>
+          <td style="text-align: center;">{{ $test[4][3] }}</td>
+          <td style="text-align: center;">{{ $test[4][4] }}</td>
+          <td style="text-align: center;">{{ $test[4][5] }}</td>
         </tr>
         <tr>
-          <td style="width: 37%;">Type</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
+          <td>Type</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[5][0] == 'Yes' ? 'checked' : '' }}> Automatic Shutoff Device &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[5][0] == 'No' ? 'checked' : '' }}> Ball Float Valve</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[5][1] == 'Yes' ? 'checked' : '' }}> Automatic Shutoff Device &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[5][1] == 'No' ? 'checked' : '' }}> Ball Float Valve</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[5][2] == 'Yes' ? 'checked' : '' }}> Automatic Shutoff Device &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[5][2] == 'No' ? 'checked' : '' }}> Ball Float Valve</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[5][3] == 'Yes' ? 'checked' : '' }}> Automatic Shutoff Device &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[5][3] == 'No' ? 'checked' : '' }}> Ball Float Valve</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[5][4] == 'Yes' ? 'checked' : '' }}> Automatic Shutoff Device &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[5][4] == 'No' ? 'checked' : '' }}> Ball Float Valve</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[5][5] == 'Yes' ? 'checked' : '' }}> Automatic Shutoff Device &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[5][5] == 'No' ? 'checked' : '' }}> Ball Float Valve</td>
         </tr>
+
+
         <tr style="background: #e6e7e9;">
           <td colspan="7" style="font-weight: 700; background: #d9d9d9;">AUTOMATIC SHUTOFF DEVICE INSPECTION</td>
         </tr>
         <tr>
-          <td style="width: 37%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
+          <td>1.Drop tube removed from tank?</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[6][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[6][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[6][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[6][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[6][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[6][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[6][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[6][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[6][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[6][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[6][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[6][5] == 'No' ? 'checked' : '' }}> No</td>
         </tr>
+        <tr>
+          <td>2.Drop tube and float mechanisms free of debris?</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[7][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[7][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[7][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[7][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[7][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[7][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[7][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[7][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[7][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[7][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[7][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[7][5] == 'No' ? 'checked' : '' }}> No</td>
+        </tr>
+        <tr>
+          <td>3.Float moves freely without binding and poppet moves into flow path?</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[8][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[8][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[8][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[8][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[8][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[8][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[8][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[8][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[8][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[8][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[8][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[8][5] == 'No' ? 'checked' : '' }}> No</td>
+        </tr>
+        <tr>
+          <td>4.Bypass valve in the drop tube open and free of blockage (if present)?</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[9][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][0] == 'No' ? 'checked' : '' }}> No <br><input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][0] == 'NP' ? 'checked' : '' }}> Not Present</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[9][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][1] == 'No' ? 'checked' : '' }}> No <br><input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][1] == 'NP' ? 'checked' : '' }}> Not Present</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[9][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][2] == 'No' ? 'checked' : '' }}> No <br><input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][2] == 'NP' ? 'checked' : '' }}> Not Present</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[9][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][3] == 'No' ? 'checked' : '' }}> No <br><input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][3] == 'NP' ? 'checked' : '' }}> Not Present</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[9][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][4] == 'No' ? 'checked' : '' }}> No <br><input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][4] == 'NP' ? 'checked' : '' }}> Not Present</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[9][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][5] == 'No' ? 'checked' : '' }}> No <br><input style="margin-bottom: -3px;" type="checkbox" {{ $test[9][5] == 'NP' ? 'checked' : '' }}> Not Present</td>
+        </tr>
+        <tr>
+          <td>5.Flapper adjusted to shut off flow at 95% capacity?*</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[10][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[10][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[10][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[10][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[10][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[10][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[10][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[10][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[10][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[10][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[10][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[10][5] == 'No' ? 'checked' : '' }}> No</td>
+        </tr>
+
         <tr style="background: #e6e7e9;">
           <td colspan="7" style="font-weight: 700; background: #d9d9d9;">BALL FLOAT VALVE INSPECTION**</td>
         </tr>
         <tr>
-          <td style="width: 37%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
-          <td style="width: 10.5%; text-align: center;">-</td>
+          <td>1.Tank top fittings vapor- tight and leak-free?</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[11][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[11][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[11][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[11][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[11][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[11][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[11][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[11][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[11][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[11][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[11][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[11][5] == 'No' ? 'checked' : '' }}> No</td>
+        </tr>
+        <tr>
+          <td>2.Ball float cage free of debris?</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[12][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[12][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[12][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[12][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[12][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[12][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[12][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[12][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[12][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[12][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[12][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[12][5] == 'No' ? 'checked' : '' }}> No</td>
+        </tr>
+        <tr>
+          <td>3.Ball free of holes and cracks and moves freely in cage?</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[13][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[13][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[13][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[13][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[13][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[13][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[13][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[13][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[13][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[13][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[13][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[13][5] == 'No' ? 'checked' : '' }}> No</td>
+        </tr>
+        <tr>
+          <td>4.Vent hole in pipe open and near top of tank?</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[14][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[14][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[14][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[14][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[14][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[14][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[14][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[14][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[14][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[14][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[14][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[14][5] == 'No' ? 'checked' : '' }}> No</td>
+        </tr>
+        <tr>
+          <td>5.Ball float pipe proper length to restrict flow at 90% capacity?***</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[15][0] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[15][0] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[15][1] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[15][1] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[15][2] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[15][2] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[15][3] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[15][3] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[15][4] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[15][4] == 'No' ? 'checked' : '' }}> No</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[15][5] == 'Yes' ? 'checked' : '' }}> Yes &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[15][5] == 'No' ? 'checked' : '' }}> No</td>
         </tr>
 
         <tr>
@@ -145,12 +224,12 @@
         </tr>
         <tr style="font-weight: 700; background: #d9d9d9;">
           <td>Test Results</td>
-          <td style="width: 15%; text-align: center;">-</td>
-          <td style="width: 15%; text-align: center;">-</td>
-          <td style="width: 15%; text-align: center;">-</td>
-          <td style="width: 15%; text-align: center;">-</td>
-          <td style="width: 15%; text-align: center;">-</td>
-          <td style="width: 15%; text-align: center;">-</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[16][0] == 'Pass' ? 'checked' : '' }}> Pass &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[16][0] == 'Fail' ? 'checked' : '' }}> Fail</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[16][1] == 'Pass' ? 'checked' : '' }}> Pass &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[16][1] == 'Fail' ? 'checked' : '' }}> Fail</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[16][2] == 'Pass' ? 'checked' : '' }}> Pass &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[16][2] == 'Fail' ? 'checked' : '' }}> Fail</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[16][3] == 'Pass' ? 'checked' : '' }}> Pass &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[16][3] == 'Fail' ? 'checked' : '' }}> Fail</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[16][4] == 'Pass' ? 'checked' : '' }}> Pass &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[16][4] == 'Fail' ? 'checked' : '' }}> Fail</td>
+          <td class="align-middle" style="text-align: center; font-size: 9px;"><input type="checkbox" style="margin-bottom: -3px;" {{ $test[16][5] == 'Pass' ? 'checked' : '' }}> Pass &nbsp; <input style="margin-bottom: -3px;" type="checkbox" {{ $test[16][5] == 'Fail' ? 'checked' : '' }}> Fail</td>
         </tr>
         <tr>
           <td colspan="7" style="font-weight: 700;">Comments <br><br></td>
@@ -163,8 +242,8 @@
           </td>
         </tr>
         <tr style="border: none;">
-          <td colspan="3" style="padding: 15px 0 0 0; border: none; font-size: 13px;">Tester’s Name (print) ____________________________</td>
-          <td colspan="4" style="padding: 15px 0 0 0; text-align: right; border: none; font-size: 13px;">Tester’s Signature ____________________________</td>
+          <td colspan="3" style="padding: 15px 0 0 0; border: none; font-size: 13px;">Tester’s Name (print) <u>{{ $testing->technician->name }}</u></td>
+          <td colspan="4" style="padding: 15px 0 0 0; text-align: right; border: none; font-size: 13px;">Tester’s Signature ________________________</td>
         </tr>
     </table>
 

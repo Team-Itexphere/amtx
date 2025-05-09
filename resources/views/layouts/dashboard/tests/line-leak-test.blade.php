@@ -12,72 +12,6 @@
           font-family: "Rubik", sans-serif !important;
         }
         
-        .black-bar {
-          background: black;
-          padding: 8px;
-        }
-
-        .blue-back{
-          background: #b8ddf8;
-        }
-
-        .main-cont {
-          margin-bottom: 20px;
-        }
-
-        .ques-cont tr:nth-child(odd) {
-          background-color: #caedfb;
-        }
-        
-        .ques-cont td:nth-child(1) {
-          width: 100mm;
-        }
-
-        .ques-cont td {
-          font-size: 10px;
-        }
-
-        .file-item {
-          margin: 10px;
-          border: 1px solid #80808022;
-          /*float: left;*/
-        }
-
-        .file-item, .file-item img {
-          width: 49mm !important; 
-          height: 29mm !important;
-        }
-        
-        .line_breaker {
-            margin-bottom: -20px;
-            opacity: 0;
-        }
-        
-        .spacer {
-            margin-bottom: 10px;
-            opacity: 0;
-        }
-        
-        .orange {
-            background: #FFC000 !important;
-        }
-        
-        .red {
-            background: #FF0000 !important;
-        }
-        
-        .green {
-            background: #84E291 !important;
-        }
-        
-        .main-hd {
-            font-size: 20px;
-        }
-        
-        .no-bd {
-            border: none;
-        }
-        
         .font-12 {
             font-size: 12px !important;
             margin-bottom: 8px;
@@ -97,49 +31,144 @@
     <table class="table" style="font-size: 13px; margin-top: -3px; font-weight: 600;">
       <tr style="border: none;">
         <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px; ">Facility Name:</td>
-        <td style="width: 40%; padding: 15px 0 0 0; border: none; font-size: 13px; ">___________________________________</td>
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;">Date:</td>
-        <td style="width: 30%; padding: 15px 0 0 0; border: none; font-size: 13px;">____________________________________</td>
+        <td style="width: 35%; padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>{{ $testing->customer->name }}</center></td>
+        <td class="text-end" style="width: 20%; padding: 15px 0 0 0; border: none; font-size: 13px;">Date:</td>
+        <td style="width: 30%; padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>{{ \Carbon\Carbon::parse($testing->date)->format('m/d/Y') }}</center></td>
       </tr>
       <tr style="border: none;">
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;">Facility Address:</td>
-        <td style="width: 40%; padding: 15px 0 0 0; border: none; font-size: 13px; ">____________________________________</td>
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
-        <td style="width: 30%; padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;">Facility Address:</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>{{ $testing->customer->str_addr }}</center></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
       </tr>
       <tr style="border: none;">
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;">Facility Phone:</td>
-        <td style="width: 40%; padding: 15px 0 0 0; border: none; font-size: 13px; ">____________________________________</td>
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
-        <td style="width: 30%; padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;">Facility Phone:</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>{{ $testing->customer->phone }}</center></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
       </tr>
       <tr style="border: none;">
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;">Test Contractor:</td>
-        <td style="width: 40%; padding: 15px 0 0 0; border: none; font-size: 13px; ">____________________________________</td>
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
-        <td style="width: 30%; padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;">Test Contractor:</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>PETRO-TANK SOLUTIONS, LLC</center></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;"></td>
       </tr>
       <tr style="border: none;">
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;">Address:</td>
-        <td style="width: 40%; padding: 15px 0 0 0; border: none; font-size: 13px; ">____________________________________</td>
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;">Tester:</td>
-        <td style="width: 30%; padding: 15px 0 0 0; border: none; font-size: 13px;">____________________________________</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;">Address:</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>6115 FM 762 Rd Suite 500<br> Richmond, Tx 77469</center></td>
+        <td class="text-end" style="padding: 15px 0 0 0; border: none; font-size: 13px;">Tester:</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>{{ $testing->technician->name }}</center></td>
       </tr>
       <tr style="border: none;">
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;">Contractor Phone:</td>
-        <td style="width: 40%; padding: 15px 0 0 0; border: none; font-size: 13px; ">____________________________________</td>
-        <td style="width: 15%; padding: 15px 0 0 0; border: none; font-size: 13px;">License #</td>
-        <td style="width: 30%; padding: 15px 0 0 0; border: none; font-size: 13px;">____________________________________</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px;">Contractor Phone:</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>(281) 242-2687</center></td>
+        <td class="text-end" style="padding: 15px 0 0 0; border: none; font-size: 13px;">License #</td>
+        <td style="padding: 15px 0 0 0; border: none; font-size: 13px; border-bottom: 1px solid black;"><center>4865.LTN</center></td>
       </tr>
     </table>
+
+    @php
+        $test = json_decode($testing->items, true);
+    @endphp
 
     <table class="table" style="font-size: 12px; margin-top: 0px; line-height: 14px;">
         <tr>
           <td style="font-weight: 600;">Product</td>
-          <td style="width: 18%; text-align: center; font-weight: 600;">REGULAR</td>
-          <td style="width: 18%; text-align: center; font-weight: 600;">SUPER</td>
-          <td style="width: 18%; text-align: center; font-weight: 600;">DISESL</td>
-          <td style="width: 18%; text-align: center; font-weight: 600;"></td>
+          <td style="width: 18%; text-align: center;"><b>{{ $test[0][0] }}</b></td>
+          <td style="width: 18%; text-align: center;"><b>{{ $test[0][1] }}</b></td>
+          <td style="width: 18%; text-align: center;"><b>{{ $test[0][2] }}</b></td>
+          <td style="width: 18%; text-align: center;"><b>{{ $test[0][3] }}</b></td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Pump Manufacturer</td>
+          <td style="text-align: center;">{{ $test[1][0] }}</td>
+          <td style="text-align: center;">{{ $test[1][1] }}</td>
+          <td style="text-align: center;">{{ $test[1][2] }}</td>
+          <td style="text-align: center;">{{ $test[1][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Isolation Mechanism</td>
+          <td style="text-align: center;">{{ $test[2][0] }}</td>
+          <td style="text-align: center;">{{ $test[2][1] }}</td>
+          <td style="text-align: center;">{{ $test[2][2] }}</td>
+          <td style="text-align: center;">{{ $test[2][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Test Pressure <br><small>(1 1/2 times working pressure)</small></td>
+          <td style="text-align: center;">{{ $test[3][0] }}</td>
+          <td style="text-align: center;">{{ $test[3][1] }}</td>
+          <td style="text-align: center;">{{ $test[3][2] }}</td>
+          <td style="text-align: center;">{{ $test[3][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Initial Cylinder Level (ICL)</td>
+          <td style="text-align: center;">{{ $test[4][0] }}</td>
+          <td style="text-align: center;">{{ $test[4][1] }}</td>
+          <td style="text-align: center;">{{ $test[4][2] }}</td>
+          <td style="text-align: center;">{{ $test[4][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Final Cylinder Level (FCL)</td>
+          <td style="text-align: center;">{{ $test[5][0] }}</td>
+          <td style="text-align: center;">{{ $test[5][1] }}</td>
+          <td style="text-align: center;">{{ $test[5][2] }}</td>
+          <td style="text-align: center;">{{ $test[5][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Leak Volume = ICL - FCL</td>
+          <td style="text-align: center;">{{ $test[6][0] }}</td>
+          <td style="text-align: center;">{{ $test[6][1] }}</td>
+          <td style="text-align: center;">{{ $test[6][2] }}</td>
+          <td style="text-align: center;">{{ $test[6][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Time Started</td>
+          <td style="text-align: center;">{{ $test[7][0] }}</td>
+          <td style="text-align: center;">{{ $test[7][1] }}</td>
+          <td style="text-align: center;">{{ $test[7][2] }}</td>
+          <td style="text-align: center;">{{ $test[7][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Time Completed</td>
+          <td style="text-align: center;">{{ $test[8][0] }}</td>
+          <td style="text-align: center;">{{ $test[8][1] }}</td>
+          <td style="text-align: center;">{{ $test[8][2] }}</td>
+          <td style="text-align: center;">{{ $test[8][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Total Test Time <br><small>(30 min. minimum)</small></td>
+          <td style="text-align: center;">{{ $test[9][0] }}</td>
+          <td style="text-align: center;">{{ $test[9][1] }}</td>
+          <td style="text-align: center;">{{ $test[9][2] }}</td>
+          <td style="text-align: center;">{{ $test[9][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Conclusion (Pass or Fail)</td>
+          <td style="text-align: center;"><b>{{ $test[10][0] }}</b></td>
+          <td style="text-align: center;"><b>{{ $test[10][1] }}</b></td>
+          <td style="text-align: center;"><b>{{ $test[10][2] }}</b></td>
+          <td style="text-align: center;"><b>{{ $test[10][3] }}</b></td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Leak Detector Manufacturer</td>
+          <td style="text-align: center;">{{ $test[11][0] }}</td>
+          <td style="text-align: center;">{{ $test[11][1] }}</td>
+          <td style="text-align: center;">{{ $test[11][2] }}</td>
+          <td style="text-align: center;">{{ $test[11][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Line PSI</td>
+          <td style="text-align: center;">{{ $test[12][0] }}</td>
+          <td style="text-align: center;">{{ $test[12][1] }}</td>
+          <td style="text-align: center;">{{ $test[12][2] }}</td>
+          <td style="text-align: center;">{{ $test[12][3] }}</td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600;">Leak Detector Result <br>(Pass or Fail)</td>
+          <td style="text-align: center;"><b>{{ $test[13][0] }}</b></td>
+          <td style="text-align: center;"><b>{{ $test[13][1] }}</b></td>
+          <td style="text-align: center;"><b>{{ $test[13][2] }}</b></td>
+          <td style="text-align: center;"><b>{{ $test[13][3] }}</b></td>
         </tr>
     </table>
 
@@ -149,7 +178,7 @@
       <br>_____________________________________________________________________________________________________________________
       <br>_____________________________________________________________________________________________________________________
       <br>_____________________________________________________________________________________________________________________
-      </h6>
+    </h6>
 
 </body>
 </html>

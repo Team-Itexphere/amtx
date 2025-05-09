@@ -13,7 +13,7 @@ use App\Models\User;
 class Comp_docsController extends Controller
 {
     // doc types
-    public function comp_doc_types($id=null)
+    public static function comp_doc_types($id=null)
     {
         $types = array(
             1 => "Annual Line & Leak Detector Test",
@@ -34,6 +34,7 @@ class Comp_docsController extends Controller
             16 => "TCEQ Registration Form",
             17 => "Texas Class C Form",
             18 => "A+B License",
+            19 => "Insurance",
             );
         
         if($id){
@@ -92,7 +93,7 @@ class Comp_docsController extends Controller
         }
         
         $rules = [
-            'name' => 'required|int|max:5', 
+            'name' => 'required|max:5', 
             'id' => 'required',
         ];
         $rules['doc'] = $request->file('doc') ? 'mimes:pdf|max:20480' : ''; 

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Routes extends Model
 {
     use HasFactory;
+    
+    //public $timestamps = false;
 
     protected $fillable = ['num', 'name', 'insp_type', 'deleted'];
 

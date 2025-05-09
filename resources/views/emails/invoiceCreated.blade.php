@@ -12,7 +12,5 @@
         <br>
         Thank you.
     </p>
-     
-    <p>Thank you</p>
 </body>
 </html>

@@ -71,8 +71,8 @@
                 <div class="col-lg-6 wow fadeIn" data-wow-delay="0.5s">
                     <p class="fw-medium text-uppercase text-primary mb-2">About Us</p>
                     <h1 class="display-5 mb-4">We Are Leader In Industrial Market</h1>
-                    <p class="mb-4">we have been in business for 17 successful years servicing the gas station industry.
-                        </br>Which area company operates : Houston, Conroe, Huntsville, Beaumont, Austin, San Antonio, Dallas. And surrounding areas.
+                    <p class="mb-4">We have been in business for 17 successful years servicing the gas station industry.
+                        </br></br>Area company operates : Houston, Conroe, Huntsville, Beaumont, Austin, San Antonio, Dallas. And surrounding areas.
                     </p>
                     <div class="d-flex align-items-center mb-4">
                         <div class="flex-shrink-0 bg-primary p-4">
@@ -81,12 +81,14 @@
                             <h5 class="text-white">Experience</h5>
                         </div>
                         <div class="ms-4 mt-3">
-                            <p><i class="fa fa-check text-primary me-2"></i>Annual Line Testing</p>
+                            <p><i class="fa fa-check text-primary me-2"></i>Monthly TCEQ Compliance Program</p>
+                            <p><i class="fa fa-check text-primary me-2"></i>Annual Testing</p>
+                            <p><i class="fa fa-check text-primary me-2"></i>Construction Services</p>
                             <p><i class="fa fa-check text-primary me-2"></i>Calibration</p>
                             <p><i class="fa fa-check text-primary me-2"></i>Stage 1 Testing</p>
                             <p><i class="fa fa-check text-primary me-2"></i>Tank Cleaning</p>
                             <p><i class="fa fa-check text-primary me-2"></i>Water Ingress Testing</p>
-                            <p><i class="fa fa-check text-primary me-2"></i>CP Testing</p>                            
+                            <p><i class="fa fa-check text-primary me-2"></i>Cathodic Protection Testing (CP)</p>                         
                         </div>
                     </div>
                     <div class="row pt-2">
@@ -108,7 +110,7 @@
                                 </div>
                                 <div class="ms-3">
                                     <p class="mb-2">Call us</p>
-                                    <h5 class="mb-0">+281 242 2687</h5>
+                                    <h5 class="mb-0">(281) 242-2687</h5>
                                 </div>
                             </div>
                         </div>
@@ -122,32 +124,32 @@
 
     <!-- Facts Start -->
     <div class="container-fluid facts my-5 p-5" style="margin-bottom: -48px !important;">
-        <div class="row g-5">
+        <div class="row g-5 justify-content-center">
             <div class="col-md-6 col-xl-3 wow fadeIn" data-wow-delay="0.1s">
                 <div class="text-center border p-5">
                     <i class="fa fa-certificate fa-3x text-white mb-3"></i>
-                    <h1 class="display-2 mb-0 text-white" data-toggle="counter-up">25</h1>
+                    <h1 class="display-2 mb-0 text-white"><span data-toggle="counter-up">17</span>+</h1>
                     <span class="fs-5 fw-semi-bold text-white">Years Experience</span>
                 </div>
             </div>
-            <div class="col-md-6 col-xl-3 wow fadeIn" data-wow-delay="0.3s">
+            <!--div class="col-md-6 col-xl-3 wow fadeIn" data-wow-delay="0.3s">
                 <div class="text-center border p-5">
                     <i class="fa fa-users-cog fa-3x text-white mb-3"></i>
                     <h1 class="display-2 mb-0 text-white" data-toggle="counter-up">135</h1>
                     <span class="fs-5 fw-semi-bold text-white">Team Members</span>
                 </div>
-            </div>
+            </div-->
             <div class="col-md-6 col-xl-3 wow fadeIn" data-wow-delay="0.5s">
                 <div class="text-center border p-5">
                     <i class="fa fa-users fa-3x text-white mb-3"></i>
-                    <h1 class="display-2 mb-0 text-white" data-toggle="counter-up">700</h1>
+                    <h1 class="display-2 text-white mb-0"><span data-toggle="counter-up">700</span>+</h1>
                     <span class="fs-5 fw-semi-bold text-white">Happy Clients</span>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3 wow fadeIn" data-wow-delay="0.7s">
                 <div class="text-center border p-5">
                     <i class="fa fa-check-double fa-3x text-white mb-3"></i>
-                    <h1 class="display-2 mb-0 text-white" data-toggle="counter-up">1839</h1>
+                    <h1 class="display-2 mb-0 text-white"><span data-toggle="counter-up">1839</span>+</h1>
                     <span class="fs-5 fw-semi-bold text-white">Projects Done</span>
                 </div>
             </div>

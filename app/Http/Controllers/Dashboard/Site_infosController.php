@@ -137,7 +137,7 @@ class Site_infosController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
 
             $customer = User::find($cus_id);
             $site_info = $customer->site_info()->with('site_info_tanks')->first();

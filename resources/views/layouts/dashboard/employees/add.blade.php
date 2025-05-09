@@ -124,7 +124,7 @@
         </div>
         <div class="row mb-3">
             <div class="col-md-6 log-f">
-                <label for="email" class="form-label"><span id="cus-lb">Store </span>Email <span class="text-danger">*</span></label>
+                <label for="email" class="form-label"><span class="cus-lb">Store</span> Email <span class="text-danger">*</span></label>
                 <input type="email" class="form-control" id="email" name="email" value="{{ $user?->email }}" readonly required>
             </div>
             <div class="col-md-6 log-f">
@@ -155,6 +155,20 @@
             <div class="col-md-6">
                 <label for="str_addr" class="form-label">Store Address</label>
                 <input type="text" class="form-control" id="str_addr" name="str_addr" value="{{ $user?->str_addr }}">
+            </div> 
+            <div class="col-md-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" id="city" name="city" value="{{ $user?->city }}">
+            </div>
+            <div class="col-md-3">
+                <label for="state" class="form-label">State</label>
+                <input type="text" class="form-control" id="state" name="state" value="{{ $user?->state }}">
+            </div>
+        </div>
+        <div class="row mb-3 customer-add">
+            <div class="col-md-6">
+                <label for="zip_code" class="form-label">Zip Code</label>
+                <input type="text" class="form-control" id="zip_code" name="zip_code" value="{{ $user?->zip_code }}">
             </div> 
             <div class="col-md-6">
                 <label for="str_phone" class="form-label">Contact Person Phone Number</label>
@@ -428,7 +442,7 @@
                                 </div>
                             </div>
                             <div class="col-md-1 text-end pt-2">
-                                <button type="button" class="btn-close close-item m-auto" aria-label="Close" disabled></button>
+                                <button type="button" class="btn-close close-item m-auto" aria-label="Close"></button>
                             </div>
                         </div>
                         @php
@@ -454,7 +468,16 @@
             </div>
         </div>
         
-        
+        <div class="row mb-3 px-3" id="work-for">
+            <div class="col-md-3" style="padding-left: 0 !important">
+                <label class="form-label" for="select-work-for">Work For</label>
+                <select class="form-select" id="select-work-for" name="work_for">
+                    <option value="AMTX">AMTX</option>
+                    <option value="PTS">PTS</option>
+                    <option value="Both">Both</option>
+                </select> 
+            </div>
+        </div>
         <div class="row mb-3 px-3">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="login" name="login" value="1">
@@ -507,12 +530,12 @@ $(document).ready(function() {
     
     function role_by_type(){
         if($('#user-type').val() == 'cus'){
-            $('.emp-types').hide();
+            $('.emp-types, #work-for').hide();
             $('#role').val(6);
         } else {
             var first_opt = $('#role option:nth-child(2)').val();
             $('#role').val(first_opt);
-            $('.emp-types').show();
+            $('.emp-types, #work-for').show();
         }
         role_changed();
     };
@@ -540,17 +563,25 @@ $(document).ready(function() {
 
         if (roleVal < 4) {
             $('.customer-add *, #fleet-wrap *').prop('disabled', true);
-            $('.customer-add, #fleet-wrap, #cus-lb').hide();
+            $('.customer-add, #fleet-wrap').hide();
+            $('.cus-lb').text('Employee');
         } else if (roleVal == 4 || roleVal == 5) {
             $('.customer-add *').prop('disabled', true);
             $('#fleet-wrap *').prop('disabled', false);
-            $('.customer-add, #cus-lb, .cus-lb').hide();
+            $('.customer-add').hide();
             $('#fleet-wrap').show();
+            $('.cus-lb').text('Employee');
         } else {
             $('.customer-add *').prop('disabled', false);
             $('#fleet-wrap *').prop('disabled', true);
-            $('.customer-add, #fleet-wrap *, #cus-lb, .cus-lb').show();
+            $('.customer-add, #fleet-wrap').show();
             $('#fleet-wrap').hide();
+            $('.cus-lb').text('Store');
+        }
+        
+        if (roleVal == 5) {
+            $('#login').prop('checked', true);
+            allow_login();
         }
     };
 
@@ -703,7 +734,7 @@ $(document).ready(function() {
                         </div>
                     </div>
                     <div class="col-md-1 text-end pt-2">
-                        <button type="button" class="btn-close close-item m-auto" aria-label="Close" disabled></button>
+                        <button type="button" class="btn-close close-item m-auto" aria-label="Close"></button>
                     </div>
                 </div>`);
 
@@ -712,9 +743,9 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.close-item', function() {
-        if($('body .close-item').length !== 1){
+        //if($('body .close-item').length !== 1){
             this.closest('.tank').remove();
-        }
+        //}
     });
     
     $(document).on('click', '.dis_sumps', function() {

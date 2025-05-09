@@ -12,32 +12,8 @@
 @endif
 <div class="container pt-2 bg-white rounded">
     <div class="d-flex justify-content-between align-items-center mb-5">
-        <h2>Route List <b>»</b> {{ $route_list->id }}</h2>
-        <button class="btn btn-primary" onclick="window.location.href='{{ route('routes') }}'"><i class="fa fa-arrow-left"></i> Back To List</button>
-    </div>
-    <div class="row mb-4">
-        <!--div class="col-md-2">
-            <input type="text" class="form-control searchInput" placeholder="Search..." value="{{ isset($_GET['s']) ? $_GET['s'] : '' }}">
-        </div-->
-
-        <form class="col-md-2 ms-auto" method="get" action="{{ url()->current() }}">
-            @foreach(request()->query() as $key => $value)
-            @if ($key !== 'per_page')
-                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-            @endif
-            @endforeach
-          <div class="form-group d-flex justify-content-end align-items-center">
-            <label for="per_page" class="me-1">Items Per Page:</label>
-            <select class="form-control w-44" name="per_page" id="per_page" onchange="this.form.submit()" style="max-width: 45px;">
-              <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-              <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20</option>
-              <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30</option>
-              <option value="40" {{ request('per_page') == 40 ? 'selected' : '' }}>40</option>
-              <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-              <option value="-1" {{ request('per_page') == -1 ? 'selected' : '' }}>All</option>
-            </select>
-          </div>
-        </form>
+        <h2>Route List <b>»</b> {{ $route_list->route->num }}</h2>
+        <button class="btn btn-primary" onclick="window.location.href='{{ url()->previous() }}'"><i class="fa fa-arrow-left"></i> Back To List</button>
     </div>
     <div class="table-responsive">
         <table class="table table-bordered" id="userTable">
@@ -46,30 +22,49 @@
                     <th>FID</th>
                     <th>Store Name</th>
                     <th>Address</th>
-                    <th>Rate</th>
-                    <th>Status</th>
-                    <th>Payment Type</th>
-                    <th>Amount</th>
-                    <th>Testing Doc</th>
+                    <th class="text-center">Inspection Status</th>
+                    <th class="text-center">Payment Status</th>
+                    <th class="text-center">Amount ($)</th>
                 </tr>
             </thead>
             <tbody>
+                @php
+                    $total_amount = 0;
+                @endphp
+                
                 @foreach($ro_locations as $loc_list)
+                    @php
+                        $total_amount += $loc_list->amount ?? 0;
+                        $list_id = request('view_rl');
+                        $invoice = $loc_list->customer->invoices()->where('route_list_id', $list_id)->first();
+                        
+                        $paid_amount_arr = $invoice ? json_decode($invoice->paid_amount, true) : [];
+                        $paid_amount = 0;
+                        if($paid_amount_arr && count($paid_amount_arr) > 0){
+                            foreach($paid_amount_arr as $paid){
+                                $paid_amount += (float)$paid[0];
+                            }
+                        }
+                    @endphp
                     <tr>
                         <td class="align-middle">{{ $loc_list->customer->fac_id }}</td>
-                        <td class="align-middle">{{ $loc_list->customer->com_name }}</td>
+                        <td class="align-middle">{{ $loc_list->customer->name }}</td>
                         <td class="align-middle">{{ $loc_list->customer->str_addr }}</td>
-                        <td class="align-middle"></td>
-                        <td class="align-middle"></td>
-                        <td class="align-middle"></td>
-                        <td class="align-middle">{{ $loc_list->amount }}</td>
-                        <td class="align-middle"></td>
+                        <td class="align-middle text-center">{{ $loc_list->status }}</td>
+                        <td class="align-middle text-center {{ $invoice?->payment == 'Unpaid' ? 'text-danger' : 'text-success' }}" style="{{ $invoice?->paid_amount && $paid_amount < $invoice?->invoice_items?->sum('amount') ? 'color: #ec6d2b !important;' : '' }}"><b>{{ $invoice && $invoice->paid_amount && $paid_amount < $invoice->invoice_items->sum('amount') ? 'Partially Paid'  : $invoice?->payment }}</b></td>
+                        <td class="align-middle text-end">{{ number_format($loc_list->amount ?? 0, 2) }}</td>
                     </tr>
                 @endforeach
+                <tr>
+                    <td colspan="4" class="align-middle"><b>Total Amount</b></td>
+                    <td class="d-none"></td>
+                    <td class="d-none"></td>
+                    <td class="d-none"></td>
+                    <td class="d-none"></td>
+                    <td class="align-middle text-end">{{ number_format($total_amount, 2) }}</td>
+                </tr>
             </tbody>
         </table>
-        <br>
-        
     </div>
 </div>
 

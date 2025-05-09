@@ -24,7 +24,7 @@ class PicturesController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
             
             $query = Pictures::query();
             
@@ -62,7 +62,7 @@ class PicturesController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
             
             if(!$request->input('image')){
                 return response()->json(['message' => 'Image Not Found'], 404);
@@ -120,6 +120,35 @@ class PicturesController extends Controller
             }
 
             return $output;
+
+        }
+
+        return response()->json(['message' => 'Access Denied'], 401);
+        
+    }
+    
+    function delete($id)
+    {
+        if (!auth()->user()) {
+            return redirect('login');
+        }
+        
+        $role = auth()->user()->role;
+        
+        if ( $role == 1 || $role == 4 || $role == 5 ) {
+            
+            if(!$id){
+                return response()->json(['message' => 'Image Not Found'], 404);
+            }
+            
+            $pic = Pictures::find($id);
+            if($pic){
+                $pic->delete();
+            } else {
+                return response()->json(['message' => 'Image Not Found'], 404);
+            }
+            
+            return response()->json(['message' => 'deleted']);
 
         }
 

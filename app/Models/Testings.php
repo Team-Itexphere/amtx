@@ -9,7 +9,7 @@ class Testings extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['route_list_id', 'ro_loc_id', 'cus_id', 'tech_id', 'status', 'type', 'invoice_id'];
+    protected $fillable = ['route_list_id', 'ro_loc_id', 'cus_id', 'tech_id', 'status', 'type', 'invoice_id', 'gen_comment'];
 
     public function technician()
     {

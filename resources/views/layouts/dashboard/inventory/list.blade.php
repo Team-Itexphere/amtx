@@ -33,31 +33,31 @@
                 <tr>
                     <th>Part No</th> 
                     <th>Manufacturer</th>
+                    <th>Description</th>
                     <th>Purchase Price</th>
                     <th>Selling Price</th>
-                    <th>Warranty</th>
-                    <th>Category</th>
-                    <th>Serial</th>
+                    <th>QTY</th>
                     <th>Location</th>
                     <th class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($inventorys as $inventory)
-                    <tr>
-                        <td class="align-middle">{{ $inventory->part_no }}</td>
-                        <td class="align-middle">{{ $inventory->manufacturer }}</td>
-                        <td class="align-middle">{{ $inventory->purchase_price }}</td>
-                        <td class="align-middle">{{ $inventory->selling_price }}</td>
-                        <td class="align-middle">{{ $inventory->warranty }}</td>
-                        <td class="align-middle">{{ $inventory->category }}</td>
-                        <td class="align-middle">{{ $inventory->serial }}</td>
-                        <td class="align-middle">{{ $inventory->fleet_id ? $inventory->fleet->fleet_no : 'Warehouse' }}</td>
-                        <td class="align-middle text-center">
-                            <button class="btn btn-primary p-0 px-1" onclick="window.location.href='{{ route('inventory', ['edit' => $inventory->id]) }}'"><i class="fa fa-edit"></i></button>
-                        </td>
-                    </tr>
-                @endforeach
+                @if($inventorys)
+                    @foreach($inventorys as $inventory)
+                        <tr>
+                            <td class="align-middle">{{ $inventory->part_no }}</td>
+                            <td class="align-middle">{{ $inventory->manufacturer }}</td>
+                            <td class="align-middle">{{ $inventory->description }}</td>
+                            <td class="align-middle">{{ $inventory->purchase_price }}</td>
+                            <td class="align-middle">{{ $inventory->selling_price }}</td>
+                            <td class="align-middle">{{ $inventory->qty }}</td>
+                            <td class="align-middle">{{ $inventory->fleet_id ? $inventory->fleet->fleet_no : 'Warehouse' }}</td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-primary p-0 px-1" onclick="window.location.href='{{ route('inventory', ['edit' => $inventory->id]) }}'"><i class="fa fa-edit"></i></button>
+                            </td>
+                        </tr>
+                    @endforeach
+                @endif
             </tbody>
         </table>
         <br>

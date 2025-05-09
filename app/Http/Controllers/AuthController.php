@@ -23,7 +23,7 @@ class AuthController extends Controller
         
         $req_email = $request->input('email');
         $req_user = User::where('email', $req_email)->first();
-        if(!$req_user || $req_user->login != 1){
+        if(!$req_user || $req_user->login != 1 || $req_user->deleted == 'yes'){
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',

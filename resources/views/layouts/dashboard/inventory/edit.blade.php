@@ -32,6 +32,16 @@
         </div>
         <div class="row mb-3">
             <div class="col-md-6">
+                <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="description" name="description" value="{{ $inventory->description }}" required>
+            </div> 
+            <div class="col-md-6">
+                <label for="qty" class="form-label">QTY <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="qty" name="qty" value="{{ $inventory->qty }}" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
                 <label for="purchase_price" class="form-label">Purchase Price</label>
                 <input type="text" class="form-control" id="purchase_price" name="purchase_price" value="{{ $inventory->purchase_price }}">
             </div>

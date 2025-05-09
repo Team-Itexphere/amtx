@@ -43,13 +43,16 @@ function filterRecords($model = null, $items = null, $type = null, $store = null
     if($model){
         if (request()->routeIs('employees')) {
 
-            $filteredRecords = $model::where('role', '>=', $auth_role)->where('deleted', null);
+            $filteredRecords = auth()->user()->role > 2 && auth()->user()->role !== 6 ? $model::where('role', '=', 6)->where('deleted', null) : $model::where('role', '>=', $auth_role)->where('deleted', null);
 
             if($auth_role == 6){
                 $filteredRecords = $model::where('role', '=', 6)->where('deleted', null);
             } else {
                 
                 if (request()->has('emp')) {
+                    if(auth()->user()->role > 2) {
+                        abort(404);
+                    }
                     $filteredRecords = $model::where('role', '!=', 6)->where('deleted', null);
                 } elseif (request()->has('cus')) {
                     

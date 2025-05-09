@@ -87,6 +87,7 @@
                         <td class="align-middle {{ $ex_soon ? 'text-danger' : '' }}">{{ $ex_date }}</td>
                         <td class="align-middle text-center">
                             @if($doc->doc_path)
+                                <a href="{{ url('/customer/docs') }}/{{ $doc->doc_path }}" class="me-2">View</a>
                                 <a href="{{ url('/customer/docs') }}/{{ $doc->doc_path }}" target="_blank" download>Download</a>
                             @endif
                         </td>
@@ -131,9 +132,10 @@
                 <option value="Annual">Annual</option>
                 <option value="Monthly">Monthly</option>
                 <option value="Every 3 years">Every 3 years</option>
+                <option value="No Expiry">No Expiry</option>
             </select>
           </div>
-          <div class="mb-3">
+          <div class="mb-3 ex-date-ad">
             <label for="expire_date" class="form-label">Expire Date</label>
             <input type="date" class="form-control" id="expire_date" name="expire_date">
           </div>
@@ -174,9 +176,10 @@
                 <option value="Annual">Annual</option>
                 <option value="Monthly">Monthly</option>
                 <option value="Every 3 years">Every 3 years</option>
+                <option value="No Expiry">No Expiry</option>
             </select>
           </div>
-          <div class="mb-3">
+          <div class="mb-3 ex-date-ed">
             <label for="nw_expire_date" class="form-label">Expire Date</label>
             <input type="date" class="form-control" id="nw_expire_date" name="nw_expire_date">
           </div>
@@ -215,6 +218,22 @@
         }
         var formattedDate = formatDate(date);
         $('#nw_expire_date').val(formattedDate);
+    });
+    
+    $('#type').change(function() {
+        if($(this).val() == 'No Expiry'){
+            $('.ex-date-ad').hide();
+        } else {
+            $('.ex-date-ad').show();
+        }
+    });
+    
+    $('#nw_type').change(function() {
+        if($(this).val() == 'No Expiry'){
+            $('.ex-date-ed').hide();
+        } else {
+            $('.ex-date-ed').show();
+        }
     });
 
 </script>

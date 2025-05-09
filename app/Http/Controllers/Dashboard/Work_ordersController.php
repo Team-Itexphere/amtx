@@ -36,15 +36,15 @@ class Work_ordersController extends Controller
         $dateRange  = request('d_range', '');
 
         $fleet_all = Fleets::all();
-        $technicians_all = User::where('role', '=', 5)->get();
+        $technicians_all = User::whereIn('role', [4, 5])->whereNull('deleted')->orderBy('name')->get();
 
         $user = auth()->user();
         $auth_role = auth()->user()->role;
         
         if($auth_role < 6){
-            $customers_all = User::where('role', '=', 6)->get();
+            $customers_all = User::where('role', '=', 6)->whereNull('deleted')->orderBy('name', 'asc')->get();
         } else {
-            $stores = $user->stores;
+            $stores = $user->stores->whereNull('deleted')->sortBy('name');
             $stores[] = $user;
             $customers_all = $stores;
         }
@@ -61,12 +61,14 @@ class Work_ordersController extends Controller
                 $work_order = Work_orders::find($woId);
 
                 if( $auth_role < 5 || $work_order->customer_id == $user->id || $work_order->tech_id == $user->id) {
+                    if( $auth_role == 6 && $work_order->status === 'Completed') {
+                        return redirect()->back()->with('error', 'Access denied');
+                    }
+                    
                     return view('dashboard', compact('work_order', 'fleet_all', 'customers_all', 'technicians_all'));
                 } else {
                     return abort(404);
                 }
-
-                
 
             }
             return redirect('dashboard/work-orders');
@@ -74,6 +76,8 @@ class Work_ordersController extends Controller
         
         if($auth_role < 5){
             $work_orders = Work_orders::query();
+        } elseif ($auth_role == 5){
+            $work_orders = Work_orders::where('tech_id', $user->id);
         } else {
             $user_id = $user->id;
             $storeIds = $user->stores->pluck('id');
@@ -91,12 +95,27 @@ class Work_ordersController extends Controller
             $work_orders = $work_orders->where('status', '!=', 'Completed')->orderBy('id', 'desc')->get();
         }
         
+        $work_for = auth()->user()->work_for;
+        if($work_for && $auth_role > 3 && $auth_role !== 6){
+            if($work_for == 'AMTX'){
+                $work_orders = $work_orders->reject(function ($wo) {
+                    return $wo->customer->com_to_inv !== 'AMTX';
+                });
+            } elseif($work_for == 'PTS') {
+                $work_orders = $work_orders->reject(function ($wo) {
+                    return $wo->customer->com_to_inv !== 'Petro-Tank Solutions';
+                });
+            }
+        }
+        
         foreach($work_orders as $wo){
             if($wo->comment){
                 $office_comnts = json_decode($wo->comment, true);
     
-                foreach ($office_comnts as &$cmnt) {
-                    $cmnt[1] = Carbon::parse($cmnt[1])->format('m/d/Y H:s A');
+                if($office_comnts){
+                    foreach ($office_comnts as &$cmnt) {
+                        $cmnt[1] = Carbon::parse($cmnt[1])->format('m/d/Y h:i A');
+                    }
                 }
             
                 $wo->comment = $office_comnts;
@@ -105,8 +124,10 @@ class Work_ordersController extends Controller
             if($wo->description){
                 $cus_comnts = json_decode($wo->description, true);
     
-                foreach ($cus_comnts as &$cmnt) {
-                    $cmnt[1] = Carbon::parse($cmnt[1])->format('m/d/Y H:s A');
+                if($cus_comnts){
+                    foreach ($cus_comnts as &$cmnt) {
+                        $cmnt[1] = Carbon::parse($cmnt[1])->format('m/d/Y h:i A');
+                    }
                 }
             
                 $wo->description = $cus_comnts;
@@ -172,6 +193,7 @@ class Work_ordersController extends Controller
                 'time' => $request->input('time'),
                 'priority' => $request->input('priority'),
                 'createdBy' => auth()->user()->id,
+                'invoiced' => $request->input('invoiced') ?? null,
             ];
 
         }
@@ -180,13 +202,13 @@ class Work_ordersController extends Controller
         
         if($request->input('description')){
             $cus_comnts = $work_order->description ? json_decode($work_order->description, true) : [];
-            $cus_comnts[] = [$request->input('description'), now()->toDateTimeString()];
+            $cus_comnts[] = [$request->input('description'), now()->toDateTimeString(), "Store"];
             $work_order->description = $cus_comnts;
         }
             
         if($request->input('comment')){
             $office_comnts = $work_order->comment ? json_decode($work_order->comment, true) : [];
-            $office_comnts[] = [$request->input('comment'), now()->toDateTimeString()];
+            $office_comnts[] = [$request->input('comment'), now()->toDateTimeString(), "Office"];
             $work_order->comment = $office_comnts;
         }
         
@@ -220,15 +242,14 @@ class Work_ordersController extends Controller
                 return abort(404);
             }
             
-            /*$new_work_order_data = [
-                'description' => $request->input('description'),            
-            ];*/
-            
             if($request->input('description')){
                 $cus_comnts = $work_order->description ? json_decode($work_order->description, true) : [];
-                $cus_comnts[] = [$request->input('description'), now()->toDateTimeString()];
+                $cus_comnts[] = [$request->input('description'), now()->toDateTimeString(), "Store"];
                 $work_order->description = $cus_comnts;
+                $work_order->save();
             }
+            
+            return redirect()->back()->with('success', 'Work order updated successfully!');
 
         } else {
             
@@ -242,11 +263,12 @@ class Work_ordersController extends Controller
                 'date' => $request->input('date'),
                 'time' => $request->input('time'),
                 'priority' => $request->input('priority'),
+                'invoiced' => $request->input('invoiced') ?? null,
             ];
             
             if($request->input('comment')){
                 $office_comnts = $work_order->comment ? json_decode($work_order->comment, true) : [];
-                $office_comnts[] = [$request->input('comment'), now()->toDateTimeString()];
+                $office_comnts[] = [$request->input('comment'), now()->toDateTimeString(), "Office"];
                 $work_order->comment = $office_comnts;
             }
 
@@ -255,7 +277,7 @@ class Work_ordersController extends Controller
         $work_order->fill($new_work_order_data);
         if($request->input('status') == 'Completed' && $curr_status == 'Pending'){
             $work_order->comp_date = now()->toDateString();
-            $work_order->comp_time = now()->toTimeString(); 
+            $work_order->comp_time = now()->toTimeString()->format('H:i'); 
         }
     
         $work_order->save();
@@ -272,6 +294,7 @@ class Work_ordersController extends Controller
         }
         
         $work_order = Work_orders::findOrFail($id);
+        $work_order->service_calls()->delete();
         $work_order->delete();
 
         return redirect()->back()->with('success', 'Work order deleted successfully!');
@@ -455,7 +478,7 @@ class Work_ordersController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
             $user = auth()->user();
             $pend_wo = $user->work_orders()->where('status', 'pending')->latest()->take(10)->get();
             foreach($pend_wo as $order){
@@ -479,14 +502,29 @@ class Work_ordersController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
             $user = auth()->user();
-            $wos = $user->work_orders;
+            $wos = $user->work_orders()->orderBy('updated_at', 'desc')->get();
             foreach($wos as $wo){
                 $wo['store_name'] = $wo->customer->name;
                 $wo['store_address'] = $wo->customer->str_addr;
                 
                 $wo['ro_loc_id'] = Ro_locations::where('cus_id', $wo->customer->id)->first()->id ?? null;
+                
+                if($wo->description){
+                    $comment = $wo->comment ? json_decode($wo->comment, true) : [];
+                    $description = $wo->description ? json_decode($wo->description, true) : [];
+                    
+                    $merged_comment = array_merge($comment, $description);
+                    usort($merged_comment, function($a, $b) {
+                        $dateA = strtotime($a[1]);
+                        $dateB = strtotime($b[1]);
+                        return $dateB - $dateA;
+                    });
+                    
+                    $wo->comment = $merged_comment;
+                }
+                $wo->makeHidden('description');
                 
                 $wo->makeHidden('customer');
             }
@@ -506,7 +544,7 @@ class Work_ordersController extends Controller
         
         $user = auth()->user();
         
-        if ( $user->role == 5 ) {
+        if ( $user->role == 4 || $user->role == 5 ) {
 
             $user = auth()->user();
             $wo = Work_orders::find($request->input('id'));
@@ -520,11 +558,12 @@ class Work_ordersController extends Controller
             }
             
             
-            $wo->status = $request->input('status') == 'completed' ? 'Completed' : 'Pending';
-            if($request->input('status') == 'completed'){
-                $wo->comp_date = now()->toDateString();
-                $wo->comp_time = now()->toTimeString(); 
+            $wo->status = $request->input('status') == 'Completed' ? 'Completed' : 'Pending';
+            if($request->input('status') == 'Completed'){
+                $wo->comp_date = Carbon::now('America/Chicago')->toDateString();
+                $wo->comp_time = Carbon::now('America/Chicago')->format('H:i'); 
             }
+            $wo->updated_at = Carbon::now('America/Chicago');
             $wo->save();
             
             $st_date = $request->input('start_date') ?? null;
@@ -568,12 +607,13 @@ class Work_ordersController extends Controller
                     'wo_id' => $wo->id,
                     'tech_id' => $user->id,
                     'start_date' => $st_date,
-                    'comp_date' => $co_date,
                     'comment' => $comnt,
                     'images' => $img_arr ? json_encode($img_arr) : null,
+                    'created_at' => Carbon::now('America/Chicago'),
+                    'updated_at' => Carbon::now('America/Chicago')
                 ];
                 
-                $service_call = Service_calls::create($new_service_call);
+                $service_call = Service_calls::forceCreate($new_service_call);
             }
     
             return $wo;
@@ -591,16 +631,22 @@ class Work_ordersController extends Controller
         
         $role = auth()->user()->role;
         
-        if ( $role == 5 ) {
+        if ( $role == 4 || $role == 5 ) {
             
             $user = auth()->user();
             $wo = Work_orders::find($request->input('id'));
             if($wo){
-                $service_calls = $wo->service_calls()->orderBy('created_at', 'desc')->get();
+                $cus_name = $wo->customer->name;
+                $fac_id = $wo->customer->fac_id;
+                $str_addr = $wo->customer->str_addr;
+                
+                $id = 1;
+                
+                $service_calls = $wo->service_calls;
                 foreach($service_calls as $call){
-                    $call['cus_name'] = $wo->customer->name;
-                    $call['cus_fac_id'] = $wo->customer->fac_id;
-                    $call['str_address'] = $wo->customer->str_addr;
+                    $call['cus_name'] = $cus_name;
+                    $call['cus_fac_id'] = $fac_id;
+                    $call['str_address'] = $str_addr;
                     $call['tech_name'] = $call->technician->name;
                     $call->makeHidden('technician');
                     
@@ -614,7 +660,27 @@ class Work_ordersController extends Controller
                     } else {
                         $call->images = [];
                     }
+                    
+                    $id = $call->id;
                 }
+                
+                $cus_com = $wo->description ? json_decode($wo->description) : [];
+                $office_com = $wo->comment ? json_decode($wo->comment) : [];
+                $comments = array_merge($cus_com, $office_com);
+                foreach($comments as &$com){
+                    $id++;
+                    $com['id'] = $id;
+                    $com['comment'] = $com[0];
+                    $com['cus_name'] = $cus_name;
+                    $com['cus_fac_id'] = $fac_id;
+                    $com['str_address'] = $str_addr;
+                    $com['tech_name'] = $com[2];
+                    $com['images'] = [];
+                    $com['created_at'] = (new \DateTime($com[1], new \DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.u\Z');
+                }
+                unset($com);
+                return collect($service_calls)->merge($comments)->sortByDesc('created_at')->values();
+                
             } else {
                 $service_calls = [];
             }
